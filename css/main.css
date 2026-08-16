@@ -322,10 +322,9 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   grid-template-rows: auto auto;
   grid-template-areas:
     "left center right"
-    "left loot right";
+    "loot loot loot";
   gap: 0.5rem;
   padding: 0.5rem;
-  align-items: start;
 }
 
 /* LEFT PANEL — Heroes */
@@ -568,6 +567,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .battle-arena {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -575,7 +575,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   padding: 0.75rem;
   position: relative;
   background: radial-gradient(ellipse at center, rgba(99,102,241,0.05) 0%, transparent 70%);
-  height: 230px;
+  min-height: 230px;
 }
 
 .arena-side {
