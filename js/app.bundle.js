@@ -216,11 +216,50 @@
 
   // ─── PAGE: HEROES ────────────────────────
   function renderHeroes() {
-    var eq = getEquipe();
+    var allChars = state.personagens;
 
-    var heroCards = eq.map(function (c) {
-      if (!c) return '';
+    function tierClass(tier) {
+      var t = (tier || '').toLowerCase();
+      if (t.indexOf('raro') !== -1 && t.indexOf('ultra') !== -1) return 'tier-ultra';
+      if (t.indexOf('lend') !== -1) return 'tier-legendary';
+      if (t.indexOf('mit') !== -1) return 'tier-mythic';
+      if (t.indexOf('raro') !== -1) return 'tier-rare';
+      return 'tier-common';
+    }
+
+    function starsHtml(n) {
+      var s = '';
+      for (var i = 0; i < n; i++) s += '★';
+      return s || '☆';
+    }
+
+    function renderTokens() {
+      var list = document.getElementById('hero-token-list');
+      if (!list) return;
+      list.innerHTML = allChars.map(function (c) {
+        var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
+        return '<button class="hero-token ' + tierClass(c.tier) + '" data-hero="' + c.id + '" title="' + c.nome + '">' +
+          '<div class="hero-token-img">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div>' +
+          '<div class="hero-token-stars">' + starsHtml(c.estrelas) + '</div>' +
+        '</button>';
+      }).join('');
+      list.querySelectorAll('.hero-token').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          list.querySelectorAll('.hero-token').forEach(function (b) { b.classList.remove('selected'); });
+          btn.classList.add('selected');
+          renderDetails(btn.dataset.hero);
+        });
+      });
+    }
+
+    function renderDetails(id) {
+      var panel = document.getElementById('hero-details');
+      if (!panel) return;
+      var c = state.personagens.find(function (p) { return p.id === id; });
+      if (!c) { panel.innerHTML = '<div class="empty-state"><div class="empty-state-text">Selecione um herói à esquerda.</div></div>'; return; }
+
       var hpPct = Math.round((c.stats.hp / c.stats.hpMax) * 100);
+      var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
 
       var skillsHtml = c.habilidades.map(function (h) {
         var typeLabel = h.tipo === 'basico' ? 'Básico' : 'Única';
@@ -233,35 +272,54 @@
         passivaHtml = '<div class="hero-passive"><div class="passive-title">🌕 ' + c.passiva.nome + '</div><div class="passive-desc">' + c.passiva.descricao + '</div></div>';
       }
 
-      var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
-
-      return '<div class="hero-detail-card">' +
-        '<div class="hero-detail-header"><div class="hero-avatar">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div><div class="hero-info-text"><div class="hero-detail-name">' + c.nome + '</div><div class="hero-detail-title">' + c.titulo + '</div><div class="hero-detail-class">' + c.classe + ' — ' + c.especialidade + ' <span class="badge badge-purple">' + c.tier + '</span></div></div></div>' +
-        '<div class="hero-bars">' +
-          '<div class="hero-stat-row"><span class="hero-stat-label">❤️ HP</span><span class="hero-stat-val">' + c.stats.hp + ' / ' + c.stats.hpMax + '</span></div>' +
-          '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div></div>' +
-        '</div>' +
-        '<div class="stats-grid">' +
-          '<div class="stat-box"><div class="stat-box-label">ATK</div><div class="stat-box-val">' + c.stats.atk + '</div></div>' +
-          '<div class="stat-box"><div class="stat-box-label">DEF</div><div class="stat-box-val">' + c.stats.def + '%</div></div>' +
-          '<div class="stat-box"><div class="stat-box-label">SPD</div><div class="stat-box-val">' + c.stats.velocidadeAtaque + '</div></div>' +
-          '<div class="stat-box"><div class="stat-box-label">CRT</div><div class="stat-box-val">' + c.stats.chanceCritica + '%</div></div>' +
-          '<div class="stat-box"><div class="stat-box-label">DMG CRT</div><div class="stat-box-val">' + c.stats.danoCritico + '%</div></div>' +
-          '<div class="stat-box"><div class="stat-box-label">ESTRELA</div><div class="stat-box-val">★' + c.estrelas + '</div></div>' +
-        '</div>' +
-        '<div class="hero-skills"><div class="hero-skills-title">🔮 Habilidades</div>' + skillsHtml + '</div>' +
-        passivaHtml +
-      '</div>';
-    }).join('');
-
-    var emptySlots = eq.filter(function (c) { return c === null; }).length;
+      panel.innerHTML =
+        '<div class="hero-detail-card">' +
+          '<div class="hero-detail-header">' +
+            '<div class="hero-avatar">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div>' +
+            '<div class="hero-info-text">' +
+              '<div class="hero-detail-name">' + c.nome + '</div>' +
+              '<div class="hero-detail-title">' + c.titulo + '</div>' +
+              '<div class="hero-detail-class">' + c.classe + ' — ' + c.especialidade + ' <span class="badge ' + tierClass(c.tier) + '">' + c.tier + '</span></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="hero-detail-bars">' +
+            '<div class="hero-stat-row"><span class="hero-stat-label">❤️ HP</span><span class="hero-stat-val">' + c.stats.hp + ' / ' + c.stats.hpMax + '</span></div>' +
+            '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div></div>' +
+          '</div>' +
+          '<div class="stats-grid">' +
+            '<div class="stat-box"><div class="stat-box-label">ATK</div><div class="stat-box-val">' + c.stats.atk + '</div></div>' +
+            '<div class="stat-box"><div class="stat-box-label">DEF</div><div class="stat-box-val">' + c.stats.def + '%</div></div>' +
+            '<div class="stat-box"><div class="stat-box-label">SPD</div><div class="stat-box-val">' + c.stats.velocidadeAtaque + '</div></div>' +
+            '<div class="stat-box"><div class="stat-box-label">CRT</div><div class="stat-box-val">' + c.stats.chanceCritica + '%</div></div>' +
+            '<div class="stat-box"><div class="stat-box-label">DMG CRT</div><div class="stat-box-val">' + c.stats.danoCritico + '%</div></div>' +
+            '<div class="stat-box"><div class="stat-box-label">ESTRELA</div><div class="stat-box-val">' + starsHtml(c.estrelas) + '</div></div>' +
+          '</div>' +
+          '<div class="hero-skills"><div class="hero-skills-title">🔮 Habilidades</div>' + skillsHtml + '</div>' +
+          passivaHtml +
+        '</div>';
+    }
 
     content.innerHTML =
       '<div class="heroes-page">' +
         '<h2 class="heroes-page-title">🛡️ Heróis</h2>' +
-        heroCards +
-        (emptySlots > 0 ? '<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.8rem;">' + emptySlots + ' slot(s) vazio(s) — Obtenha heróis na Loja</div>' : '') +
+        '<div class="heroes-layout">' +
+          '<div class="hero-tokens-panel">' +
+            '<div class="panel-subtitle">Personagens</div>' +
+            '<div class="hero-token-list" id="hero-token-list"></div>' +
+          '</div>' +
+          '<div class="hero-details-panel" id="hero-details">' +
+            '<div class="empty-state"><div class="empty-state-text">Selecione um herói à esquerda.</div></div>' +
+          '</div>' +
+        '</div>' +
       '</div>';
+
+    renderTokens();
+    if (allChars.length > 0) {
+      var first = allChars[0];
+      var firstBtn = document.querySelector('.hero-token[data-hero="' + first.id + '"]');
+      if (firstBtn) { firstBtn.classList.add('selected'); }
+      renderDetails(first.id);
+    }
   }
 
   // ─── PAGE: INVENTORY ─────────────────────
