@@ -375,6 +375,14 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   justify-content: center;
   font-size: 1.4rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.hero-card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
 }
 
 .hero-card-info {
@@ -606,6 +614,14 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   justify-content: center;
   font-size: 1.5rem;
   position: relative;
+  overflow: hidden;
+}
+
+.arena-unit-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
 }
 
 .arena-unit.hero-unit {
@@ -828,6 +844,14 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   justify-content: center;
   font-size: 1.8rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.hero-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
 }
 
 .hero-info-text { flex: 1; }

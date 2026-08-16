@@ -19,6 +19,7 @@
         descricao: 'Chuva de raios estelares causando dano mágico em todos os inimigos.', alvo: 'todos_inimigos', area: true },
     ],
     equipamentos: { arma: null, armadura: null, acessorio: null }, magias: [],
+    images: { perfil: 'chars/Luna/Perfil - LUNA.png', combat: 'chars/Luna/Combat - Luna.png' },
   };
 
   // ─── STATE ───────────────────────────────
@@ -131,9 +132,11 @@
         ? '<div class="hero-skill-slot" title="' + skill2.nome + '"><div class="hero-skill-cd-overlay" id="cd-' + skill2.id + '"><div class="hero-skill-cd-ring"></div><span class="hero-skill-cd-text"></span></div><span class="hero-skill-icon">💫</span><span class="hero-skill-name">' + skill2.nome + '</span></div>'
         : '<div class="hero-skill-slot"><span class="hero-skill-icon">—</span><span class="hero-skill-name">Vazio</span></div>';
 
+      var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
+
       return '<div class="hero-card filled">' +
         '<div class="hero-card-top">' +
-          '<div class="hero-card-avatar">🌙</div>' +
+          '<div class="hero-card-avatar">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div>' +
           '<div class="hero-card-info">' +
             '<div class="hero-card-name-row"><span class="hero-card-name">' + c.nome + '</span><span class="hero-card-lv">Lv ' + c.nivel + '</span></div>' +
             '<div class="hero-card-bars">' +
@@ -152,7 +155,9 @@
 
     var arenaHeroes = eq.map(function (c) {
       if (!c) return '';
-      return '<div class="arena-unit hero-unit">🌙<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-green)"></div></div></div>';
+      var combatSrc = c.images && c.images.combat ? c.images.combat : '';
+      var inner = combatSrc ? '<img src="' + combatSrc + '" alt="' + c.nome + '" class="arena-unit-img" />' : '🌙';
+      return '<div class="arena-unit hero-unit">' + inner + '<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-green)"></div></div></div>';
     }).join('');
 
     var enemies = [
@@ -209,8 +214,10 @@
         passivaHtml = '<div class="hero-passive"><div class="passive-title">🌕 ' + c.passiva.nome + '</div><div class="passive-desc">' + c.passiva.descricao + '</div></div>';
       }
 
+      var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
+
       return '<div class="hero-detail-card">' +
-        '<div class="hero-detail-header"><div class="hero-avatar">🌙</div><div class="hero-info-text"><div class="hero-detail-name">' + c.nome + '</div><div class="hero-detail-title">' + c.titulo + '</div><div class="hero-detail-class">' + c.classe + ' — ' + c.especialidade + ' <span class="badge badge-purple">' + c.tier + '</span></div></div></div>' +
+        '<div class="hero-detail-header"><div class="hero-avatar">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div><div class="hero-info-text"><div class="hero-detail-name">' + c.nome + '</div><div class="hero-detail-title">' + c.titulo + '</div><div class="hero-detail-class">' + c.classe + ' — ' + c.especialidade + ' <span class="badge badge-purple">' + c.tier + '</span></div></div></div>' +
         '<div class="hero-bars">' +
           '<div class="hero-stat-row"><span class="hero-stat-label">❤️ HP</span><span class="hero-stat-val">' + c.stats.hp + ' / ' + c.stats.hpMax + '</span></div>' +
           '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div></div>' +
