@@ -50,6 +50,7 @@
   function resetState() { state = defaultState(); localStorage.removeItem(STORAGE_KEY); notify(); }
 
   state = loadSave() || defaultState();
+  migrateCharacters();
 
   function getState() { return state; }
   function setState(s) { state = Object.assign({}, state, s); notify(); }
@@ -61,6 +62,22 @@
       if (!id) return null;
       return state.personagens.find(function (p) { return p.id === id; }) || null;
     });
+  }
+
+  function migrateCharacters() {
+    var changed = false;
+    state.personagens.forEach(function (p) {
+      var template = CHARACTER_TEMPLATES[p.id];
+      if (template) {
+        if (!p.images && template.images) { p.images = template.images; changed = true; }
+        if (template.stats) {
+          Object.keys(template.stats).forEach(function (k) {
+            if (p.stats[k] === undefined) { p.stats[k] = template.stats[k]; changed = true; }
+          });
+        }
+      }
+    });
+    if (changed) notify();
   }
 
   // ─── DOM HELPERS ─────────────────────────
