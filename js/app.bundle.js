@@ -284,7 +284,7 @@
               '<div class="hero-detail-title">' + c.titulo + '</div>' +
               '<div class="hero-detail-class">' + c.classe + ' — ' + c.especialidade + ' <span class="badge ' + tierClass(c.tier) + '">' + c.tier + '</span></div>' +
             '</div>' +
-            '<button class="btn-evoluir" title="Evoluir (máx. LV 99)">EVOLUIR</button>' +
+            '<button class="btn-evoluir" disabled title="Evoluir (máx. LV 99)">EVOLUIR</button>' +
           '</div>' +
           '<div class="hero-detail-bars">' +
             '<div class="hero-stat-row"><span class="hero-stat-label">❤️ HP</span><span class="hero-stat-val">' + c.stats.hp + ' / ' + c.stats.hpMax + '</span></div>' +
@@ -299,14 +299,17 @@
             '<div class="stat-box"><div class="stat-box-label">ESTRELA</div><div class="stat-box-val">' + starsHtml(c.estrelas) + '</div></div>' +
           '</div>' +
           '<div class="hero-skills"><div class="hero-skills-title">🔮 Habilidades</div>' + skillsHtml + '</div>' +
+          passivaHtml +
           '<div class="hero-equip">' +
             '<div class="hero-skills-title">⚔️ Equipamento</div>' +
-            '<div class="equip-slots">' +
-              '<div class="equip-slot" title="Slot de equipamento"><div class="equip-slot-icon">—</div></div>' +
-              '<div class="equip-slot" title="Slot de equipamento"><div class="equip-slot-icon">—</div></div>' +
+            '<div class="equip-grid">' +
+              '<div class="equip-slots">' +
+                '<div class="equip-slot" title="Slot de equipamento"><div class="equip-slot-icon">—</div></div>' +
+                '<div class="equip-slot" title="Slot de equipamento"><div class="equip-slot-icon">—</div></div>' +
+              '</div>' +
+              '<div class="equip-stats-preview"><span class="equip-stats-empty">Nenhum item equipado</span></div>' +
             '</div>' +
           '</div>' +
-          passivaHtml +
         '</div>';
     }
 

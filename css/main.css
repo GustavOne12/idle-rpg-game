@@ -136,7 +136,7 @@ body {
 }
 
 #content > .battle-page {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0.75rem;
   height: calc(100% - 1.5rem);
@@ -790,7 +790,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   height: 100%;
   overflow-y: auto;
@@ -986,12 +986,23 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   box-shadow: 0 2px 0 rgba(0,0,0,0.3);
 }
 
-.btn-evoluir:hover {
+.btn-evoluir:disabled {
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+  transform: none;
+  filter: none;
+}
+
+.btn-evoluir:not(:disabled):hover {
   transform: translateY(-1px);
   filter: brightness(1.1);
 }
 
-.btn-evoluir:active {
+.btn-evoluir:not(:disabled):active {
   transform: translateY(0);
   box-shadow: none;
 }
@@ -1115,15 +1126,23 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   border-top: 1px solid var(--border);
 }
 
+.equip-grid {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  align-items: flex-start;
+}
+
 .equip-slots {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  flex-shrink: 0;
 }
 
 .equip-slot {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   background: var(--bg-panel);
   border: 2px dashed var(--border);
   border-radius: var(--radius-md);
@@ -1139,8 +1158,25 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .equip-slot-icon {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   color: var(--text-muted);
+}
+
+.equip-stats-preview {
+  flex: 1;
+  min-height: 120px;
+  background: var(--bg-panel);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.equip-stats-empty {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* ─── INVENTORY PAGE ────────────────────── */
