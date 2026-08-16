@@ -355,6 +355,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   gap: 0.25rem;
   min-height: 0;
   justify-content: flex-start;
+  overflow: hidden;
+  position: relative;
 }
 
 .hero-card.filled { border-color: var(--accent-gold); }
@@ -941,11 +943,57 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   image-rendering: pixelated;
 }
 
-.hero-info-text { flex: 1; }
+.hero-info-text { flex: 1; min-width: 0; }
+
+.hero-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
 .hero-detail-name {
   font-size: 1rem;
   font-weight: 800;
+}
+
+.hero-detail-lv {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(180deg, #f59e0b, #b45309);
+  border: 1px solid #d97706;
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+.btn-evoluir {
+  align-self: flex-start;
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #1e1b2e;
+  background: linear-gradient(180deg, #fbbf24, #f59e0b);
+  border: 1px solid #d97706;
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+}
+
+.btn-evoluir:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.btn-evoluir:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .hero-detail-title {
@@ -1058,6 +1106,41 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   font-size: 0.7rem;
   color: var(--text-secondary);
   line-height: 1.3;
+}
+
+/* ─── HERO EQUIPMENT ────────────────────── */
+.hero-equip {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.equip-slots {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.equip-slot {
+  width: 64px;
+  height: 64px;
+  background: var(--bg-panel);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+
+.equip-slot:hover {
+  border-color: var(--accent-gold);
+  background: rgba(245,183,49,0.06);
+}
+
+.equip-slot-icon {
+  font-size: 1.4rem;
+  color: var(--text-muted);
 }
 
 /* ─── INVENTORY PAGE ────────────────────── */
