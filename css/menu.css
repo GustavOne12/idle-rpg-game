@@ -1,0 +1,91 @@
+.menu-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 160px);
+  padding: 2rem 1rem;
+}
+
+.menu-logo {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 20px rgba(240, 165, 0, 0.3);
+}
+
+.menu-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--accent-gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 0 30px rgba(240, 165, 0, 0.2);
+}
+
+.menu-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 2.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: left;
+  transition: all var(--transition-normal);
+}
+
+.menu-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-gold);
+  box-shadow: var(--shadow-glow);
+  transform: translateX(4px);
+}
+
+.menu-btn-icon {
+  font-size: 1.5rem;
+  width: 2.5rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.menu-btn-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-btn-label {
+  font-weight: 700;
+}
+
+.menu-btn-desc {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-top: 0.15rem;
+}
+
+.menu-version {
+  margin-top: 2rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}

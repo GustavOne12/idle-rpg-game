@@ -1,0 +1,119 @@
+.save-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.save-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.save-status-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.save-status-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.save-status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.save-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.save-info-label {
+  color: var(--text-secondary);
+}
+
+.save-info-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.save-info-value.empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.save-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.save-data-preview {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.save-data-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+
+.save-data-content {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  max-height: 150px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.save-warning {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0.5rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  width: 100%;
+}

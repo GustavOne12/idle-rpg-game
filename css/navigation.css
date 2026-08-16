@@ -1,0 +1,124 @@
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-default);
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left {
+  flex-shrink: 0;
+}
+
+.game-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent-gold);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.header-right {
+  flex-shrink: 0;
+}
+
+.btn-menu-icon {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 0.4em 0.8em;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-menu-icon:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+#main-nav {
+  display: flex;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-default);
+  padding: 0 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nav-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0.65rem 1.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav-btn:hover {
+  color: var(--text-primary);
+  background: rgba(240, 165, 0, 0.05);
+}
+
+.nav-btn.active {
+  color: var(--accent-gold);
+  border-bottom-color: var(--accent-gold);
+}
+
+#footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-default);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+.resource-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.resource-icon {
+  font-size: 0.85rem;
+}
+
+.resource-value {
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.resources-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+}

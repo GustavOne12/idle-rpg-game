@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Idle RPG</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/navigation.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/play.css" />
+  <link rel="stylesheet" href="css/team.css" />
+  <link rel="stylesheet" href="css/gacha.css" />
+  <link rel="stylesheet" href="css/save.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>" />
+</head>
+<body>
+  <div id="app">
+    <header id="header">
+      <div class="header-left">
+        <h1 class="game-title" id="game-title">⚔️ IDLE RPG</h1>
+      </div>
+      <div class="header-center" id="resource-bar"></div>
+      <div class="header-right">
+        <button class="btn-menu-icon" id="btn-back" title="Voltar ao Menu" style="display:none;">☰ MENU</button>
+      </div>
+    </header>
+
+    <nav id="main-nav">
+      <button class="nav-btn active" data-page="menu">🏠 MENU</button>
+      <button class="nav-btn" data-page="play">⚔️ PLAY</button>
+      <button class="nav-btn" data-page="team">👥 EQUIPE</button>
+      <button class="nav-btn" data-page="gacha">🎰 GACHA</button>
+      <button class="nav-btn" data-page="save">💾 SALVAR</button>
+    </nav>
+
+    <main id="content"></main>
+
+    <footer id="footer">
+      <span>IDLE RPG v0.1.0 — Fundação da Interface</span>
+    </footer>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
