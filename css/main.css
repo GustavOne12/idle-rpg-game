@@ -403,6 +403,24 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   gap: 0.2rem;
 }
 
+.hero-card-stats {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.hero-stat-pill {
+  font-size: 0.55rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  background: var(--bg-panel);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
 .hero-bar-row {
   display: flex;
   align-items: center;

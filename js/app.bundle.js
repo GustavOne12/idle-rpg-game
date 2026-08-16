@@ -5,7 +5,7 @@
   var LUNA = {
     id: 'luna_01', nome: 'Luna', titulo: 'Tecelã da Noite',
     classe: 'Maga', especialidade: 'Dano em Área', tier: 'Comum', nivel: 1, estrelas: 1,
-    stats: { hp: 120, hpMax: 120, mana: 80, manaMax: 80, atk: 45, def: 5, velocidadeAtaque: 0.8, chanceCritica: 15, danoCritico: 150 },
+    stats: { hp: 120, hpMax: 120, atk: 45, def: 5, velocidadeAtaque: 0.8, chanceCritica: 15, danoCritico: 150 },
     passiva: {
       id: 'ciclo_lunar', nome: 'Ciclo Lunar',
       descricao: 'A cada 15s, a fase da lua muda. Na Lua Cheia, sobrecarga com dano extra em área ao redor do alvo.',
@@ -118,7 +118,6 @@
     var heroCards = eq.map(function (c, i) {
       if (!c) return '<div class="hero-empty">Slot ' + (i + 1) + ' vazio</div>';
       var hpPct = Math.round((c.stats.hp / c.stats.hpMax) * 100);
-      var manaPct = Math.round((c.stats.mana / c.stats.manaMax) * 100);
 
       var skills = c.habilidades || [];
       var skill1 = skills[0];
@@ -139,7 +138,11 @@
             '<div class="hero-card-name-row"><span class="hero-card-name">' + c.nome + '</span><span class="hero-card-lv">Lv ' + c.nivel + '</span></div>' +
             '<div class="hero-card-bars">' +
               '<div class="hero-bar-row"><span class="hero-bar-icon">❤️</span><div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-text">' + c.stats.hp + '/' + c.stats.hpMax + '</div></div></div>' +
-              '<div class="hero-bar-row"><span class="hero-bar-icon">💧</span><div class="hero-bar"><div class="hero-bar-fill mana" style="width:' + manaPct + '%"></div><div class="hero-bar-text">' + c.stats.mana + '/' + c.stats.manaMax + '</div></div></div>' +
+            '</div>' +
+            '<div class="hero-card-stats">' +
+              '<span class="hero-stat-pill">ATK ' + c.stats.atk + '</span>' +
+              '<span class="hero-stat-pill">DEF ' + c.stats.def + '%</span>' +
+              '<span class="hero-stat-pill">CRT ' + c.stats.chanceCritica + '%</span>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -194,7 +197,6 @@
     var heroCards = eq.map(function (c) {
       if (!c) return '';
       var hpPct = Math.round((c.stats.hp / c.stats.hpMax) * 100);
-      var manaPct = Math.round((c.stats.mana / c.stats.manaMax) * 100);
 
       var skillsHtml = c.habilidades.map(function (h) {
         var typeLabel = h.tipo === 'basico' ? 'Básico' : 'Única';
@@ -212,8 +214,6 @@
         '<div class="hero-bars">' +
           '<div class="hero-stat-row"><span class="hero-stat-label">❤️ HP</span><span class="hero-stat-val">' + c.stats.hp + ' / ' + c.stats.hpMax + '</span></div>' +
           '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div></div>' +
-          '<div class="hero-stat-row"><span class="hero-stat-label">💧 Mana</span><span class="hero-stat-val">' + c.stats.mana + ' / ' + c.stats.manaMax + '</span></div>' +
-          '<div class="hero-bar"><div class="hero-bar-fill mana" style="width:' + manaPct + '%"></div></div>' +
         '</div>' +
         '<div class="stats-grid">' +
           '<div class="stat-box"><div class="stat-box-label">ATK</div><div class="stat-box-val">' + c.stats.atk + '</div></div>' +
