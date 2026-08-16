@@ -176,3 +176,90 @@
   font-family: var(--font-mono);
   color: var(--text-primary);
 }
+
+.skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skill-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+}
+
+.skill-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.skill-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.skill-type {
+  font-size: 0.6rem;
+  padding: 0.15em 0.5em;
+}
+
+.skill-mult {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--accent-gold);
+  margin-bottom: 0.35rem;
+}
+
+.skill-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 0.25rem;
+}
+
+.skill-target {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.passiva-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+}
+
+.passiva-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.passiva-icon {
+  font-size: 1.2rem;
+}
+
+.passiva-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.passiva-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 0.35rem;
+}
+
+.passiva-details {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-style: italic;
+}

@@ -1,29 +1,28 @@
+import { getCharacter } from '../data/characterRegistry.js';
+
 const STORAGE_KEY = 'idle-rpg-save';
 
-const defaultState = {
-  moedas: 0,
-  gemas: 0,
-  personagens: [
-    {
-      id: 'placeholder_01',
-      nome: 'Personagem 01',
-      classe: 'Desconhecida',
-      nivel: 1,
-      estrelas: 1,
-      tier: 'Comum',
-      hp: 100,
-      hpMax: 100,
-      atk: 10,
-      def: 5,
-      equipamentos: {
-        arma: null,
-        armadura: null,
-        acessorio: null,
-      },
-      magias: [],
+function createDefaultState() {
+  const luna = getCharacter('luna_01');
+  return {
+    moedas: 0,
+    gemas: 0,
+    personagens: [luna],
+    equipe: [luna.id, null, null],
+    progresso: {
+      waveAtual: 1,
+      waveMax: 1,
+      bossDerrotados: 0,
+      dificuldade: 1,
     },
-  ],
-  equipe: ['placeholder_01', null, null],
+    config: {
+      volume: 50,
+      notificacoes: true,
+    },
+  };
+}
+
+const defaultState = createDefaultState();
   progresso: {
     waveAtual: 1,
     waveMax: 1,

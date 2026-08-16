@@ -6,19 +6,20 @@ export function renderPlay(container, navigate) {
 
   const teamSlotsHtml = equipe.map((char, i) => {
     if (char) {
+      const hpPercent = Math.round((char.stats.hp / char.stats.hpMax) * 100);
       return `
         <div class="team-slot-card filled">
           <div class="team-slot-header">
             <span class="team-slot-number">Slot ${i + 1}</span>
             <span class="badge badge-gold">Lv ${char.nivel}</span>
           </div>
-          <div class="team-slot-icon">🧙</div>
+          <div class="team-slot-icon">🌙</div>
           <div class="team-slot-name">${char.nome}</div>
-          <div class="team-slot-class">${char.classe}</div>
-          <div class="team-hp-bar"><div class="team-hp-fill" style="width:100%"></div></div>
+          <div class="team-slot-class">${char.classe} — ${char.especialidade}</div>
+          <div class="team-hp-bar"><div class="team-hp-fill" style="width:${hpPercent}%"></div></div>
           <div class="team-slot-info">
-            <span>HP ${char.hp}/${char.hpMax}</span>
-            <span>ATK ${char.atk}</span>
+            <span>HP ${char.stats.hp}/${char.stats.hpMax}</span>
+            <span>ATK ${char.stats.atk}</span>
           </div>
         </div>
       `;
@@ -49,7 +50,7 @@ export function renderPlay(container, navigate) {
           <div class="battle-players-area">
             ${equipe.map((c) =>
               c
-                ? `<div class="battle-player-slot active">🧙</div>`
+                ? `<div class="battle-player-slot active">🌙</div>`
                 : `<div class="battle-player-slot"></div>`
             ).join('')}
           </div>
