@@ -67,11 +67,26 @@
   var content = $('content');
   var resBar = $('resource-bar');
   var bottomNav = $('bottom-nav');
+  var headerRight = null;
 
   function renderResBar() {
     resBar.innerHTML =
       '<div class="res-item"><span class="res-icon">🪙</span><span class="res-val">' + state.moedas.toLocaleString() + '</span></div>' +
       '<div class="res-item"><span class="res-icon">💎</span><span class="res-val">' + state.gemas.toLocaleString() + '</span></div>';
+  }
+
+  function initHeaderRight() {
+    headerRight = $('header-right');
+  }
+
+  function updateBackButton(page) {
+    if (!headerRight) initHeaderRight();
+    if (page === 'hub') {
+      headerRight.innerHTML = '';
+    } else {
+      headerRight.innerHTML = '<button class="btn-back" id="btn-back-hub">← Menu</button>';
+      $('btn-back-hub').addEventListener('click', function () { navigate('hub'); });
+    }
   }
 
   // ─── PAGE: HUB ───────────────────────────
@@ -104,12 +119,32 @@
       if (!c) return '<div class="hero-empty">Slot ' + (i + 1) + ' vazio</div>';
       var hpPct = Math.round((c.stats.hp / c.stats.hpMax) * 100);
       var manaPct = Math.round((c.stats.mana / c.stats.manaMax) * 100);
+
+      var skills = c.habilidades || [];
+      var skill1 = skills[0];
+      var skill2 = skills[1];
+
+      var skillSlot1 = skill1
+        ? '<div class="hero-skill-slot" title="' + skill1.nome + '"><div class="hero-skill-cd-overlay" id="cd-' + skill1.id + '"><div class="hero-skill-cd-ring"></div><span class="hero-skill-cd-text"></span></div><span class="hero-skill-icon">⚡</span><span class="hero-skill-name">' + skill1.nome + '</span></div>'
+        : '<div class="hero-skill-slot"><span class="hero-skill-icon">—</span><span class="hero-skill-name">Vazio</span></div>';
+
+      var skillSlot2 = skill2
+        ? '<div class="hero-skill-slot" title="' + skill2.nome + '"><div class="hero-skill-cd-overlay" id="cd-' + skill2.id + '"><div class="hero-skill-cd-ring"></div><span class="hero-skill-cd-text"></span></div><span class="hero-skill-icon">💫</span><span class="hero-skill-name">' + skill2.nome + '</span></div>'
+        : '<div class="hero-skill-slot"><span class="hero-skill-icon">—</span><span class="hero-skill-name">Vazio</span></div>';
+
       return '<div class="hero-card filled">' +
-        '<div class="hero-top"><span class="hero-name">' + c.nome + '</span><span class="hero-lv">Lv ' + c.nivel + '</span></div>' +
-        '<div class="hero-bar-group">' +
-          '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-label">' + c.stats.hp + '/' + c.stats.hpMax + '</div></div>' +
-          '<div class="hero-bar"><div class="hero-bar-fill mana" style="width:' + manaPct + '%"></div><div class="hero-bar-label">' + c.stats.mana + '/' + c.stats.manaMax + '</div></div>' +
-        '</div></div>';
+        '<div class="hero-card-top">' +
+          '<div class="hero-card-avatar">🌙</div>' +
+          '<div class="hero-card-info">' +
+            '<div class="hero-card-name-row"><span class="hero-card-name">' + c.nome + '</span><span class="hero-card-lv">Lv ' + c.nivel + '</span></div>' +
+            '<div class="hero-card-bars">' +
+              '<div class="hero-bar-row"><span class="hero-bar-icon">❤️</span><div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-text">' + c.stats.hp + '/' + c.stats.hpMax + '</div></div></div>' +
+              '<div class="hero-bar-row"><span class="hero-bar-icon">💧</span><div class="hero-bar"><div class="hero-bar-fill mana" style="width:' + manaPct + '%"></div><div class="hero-bar-text">' + c.stats.mana + '/' + c.stats.manaMax + '</div></div></div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hero-card-skills">' + skillSlot1 + skillSlot2 + '</div>' +
+      '</div>';
     }).join('');
 
     var arenaHeroes = eq.map(function (c) {
@@ -118,16 +153,16 @@
     }).join('');
 
     var enemies = [
-      { nome: 'Goblin', lv: 1, hp: 60, hpMax: 60 },
-      { nome: 'Orc', lv: 2, hp: 90, hpMax: 90 },
-      { nome: 'Troll', lv: 3, hp: 140, hpMax: 140 },
+      { nome: 'Goblin', lv: 1, hp: 60, hpMax: 60, alive: true },
+      { nome: 'Orc', lv: 2, hp: 90, hpMax: 90, alive: true },
+      { nome: 'Troll', lv: 3, hp: 140, hpMax: 140, alive: true },
     ];
 
-    var arenaEnemies = enemies.map(function () {
+    var arenaEnemies = enemies.filter(function (e) { return e.alive; }).map(function () {
       return '<div class="arena-unit enemy-unit">👹<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-red)"></div></div></div>';
     }).join('');
 
-    var enemyBars = enemies.map(function (e) {
+    var enemyBars = enemies.filter(function (e) { return e.alive; }).map(function (e) {
       var pct = Math.round((e.hp / e.hpMax) * 100);
       return '<div class="enemy-bar-card">' +
         '<div class="enemy-bar-top"><span class="enemy-bar-name">' + e.nome + '</span><span class="enemy-bar-level">Lv ' + e.lv + '</span></div>' +
@@ -137,13 +172,18 @@
 
     content.innerHTML =
       '<div class="battle-page">' +
-        '<div class="battle-left"><div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 0 0.25rem;font-weight:700;">Sua Equipe</div>' + heroCards + '</div>' +
+        '<div class="battle-left"><div class="battle-left-title">Sua Equipe</div>' + heroCards + '</div>' +
         '<div class="battle-center">' +
           '<div class="battle-wave-bar"><span class="wave-label">WAVE ' + state.progresso.waveAtual + '</span><span class="diff-label">Dificuldade ' + state.progresso.dificuldade + '</span></div>' +
           '<div class="battle-arena"><div class="arena-side">' + arenaHeroes + '</div><div class="arena-vs">VS</div><div class="arena-side">' + arenaEnemies + '</div></div>' +
         '</div>' +
-        '<div class="battle-right"><div style="font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;padding:0 0 0.25rem;font-weight:700;">Inimigos</div>' + enemyBars + '</div>' +
-        '<div class="battle-loot"><span class="loot-title">📦 Loot</span><div class="loot-items"><span class="loot-placeholder">Os drops aparecerão durante o combate...</span></div></div>' +
+        '<div class="battle-right"><div class="battle-right-title">Barra de Vida dos Inimigos</div>' + enemyBars + '</div>' +
+        '<div class="battle-loot">' +
+          '<div class="loot-header"><span class="loot-title">📦 Drop de Itens</span></div>' +
+          '<div class="loot-items" id="loot-log">' +
+            '<div class="loot-placeholder">Os drops aparecerão durante o combate...</div>' +
+          '</div>' +
+        '</div>' +
       '</div>';
   }
 
@@ -293,8 +333,8 @@
       btn.classList.toggle('active', btn.dataset.page === page);
     });
 
-    // hide bottom nav on battle
     bottomNav.style.display = page === 'battle' ? 'none' : 'flex';
+    updateBackButton(page);
 
     routes[page]();
     renderResBar();
