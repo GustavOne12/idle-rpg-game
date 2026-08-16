@@ -136,7 +136,7 @@ body {
 }
 
 #content > .battle-page {
-  max-width: 1300px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 0.75rem;
   height: calc(100% - 1.5rem);
@@ -316,7 +316,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 /* ─── BATTLE PAGE ───────────────────────── */
 .battle-page {
   display: grid;
-  grid-template-columns: 30% 40% 30%;
+  grid-template-columns: 26% 48% 26%;
   grid-template-rows: 1fr auto;
   grid-template-areas:
     "left center right"
@@ -331,7 +331,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   grid-area: left;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
   overflow-y: auto;
 }
 
@@ -349,11 +349,12 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 0.5rem;
+  padding: 0.45rem;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
   min-height: 0;
+  justify-content: space-between;
 }
 
 .hero-card.filled { border-color: var(--accent-gold); }
@@ -365,8 +366,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-avatar {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--radius-sm);
   background: rgba(245,183,49,0.08);
   border: 1px solid var(--border-gold);
@@ -419,10 +420,10 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.2rem;
-  margin-top: 0.3rem;
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.2rem;
+  flex-wrap: wrap;
 }
 
 .hero-stat-pill {
@@ -431,27 +432,27 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   font-family: var(--font-mono);
   color: var(--text-primary);
   background: var(--bg-panel);
-  padding: 0.2rem 0.3rem;
+  padding: 0.05rem 0.4rem;
   border-radius: 3px;
-  text-align: center;
   border: 1px solid var(--border);
-  line-height: 1.2;
+  line-height: 1.4;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
 }
 
 .hero-stat-pill .stat-label {
-  display: block;
-  font-size: 0.75rem;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: 0.7rem;
   font-family: var(--font-main);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .hero-stat-pill .stat-num {
-  display: block;
   color: var(--accent-gold);
-  font-size: 0.7rem;
 }
 
 .hero-bar-row {
@@ -469,7 +470,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 .hero-bar {
   flex: 1;
-  height: 14px;
+  height: 12px;
   background: var(--bg-surface);
   border-radius: 5px;
   overflow: hidden;
@@ -501,7 +502,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .hero-card-skills {
   display: flex;
   gap: 0.3rem;
-  margin-top: auto;
+  margin-top: 0.25rem;
 }
 
 .hero-skill-slot {
