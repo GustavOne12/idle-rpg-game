@@ -48,7 +48,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html { font-size: 14px; }
+html { font-size: 18px; }
 
 body {
   font-family: var(--font-main);
@@ -221,7 +221,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   display: inline-flex;
   align-items: center;
   padding: 0.15em 0.5em;
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   font-weight: 700;
   border-radius: 999px;
   text-transform: uppercase;
@@ -301,7 +301,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hub-info-label {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -336,7 +336,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .battle-left-title {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -365,15 +365,15 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-avatar {
-  width: 48px;
-  height: 48px;
+  width: 60px;
+  height: 60px;
   border-radius: var(--radius-sm);
   background: rgba(245,183,49,0.08);
   border: 1px solid var(--border-gold);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 1.7rem;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -406,7 +406,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-lv {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   color: var(--accent-gold);
   font-weight: 700;
   flex-shrink: 0;
@@ -426,7 +426,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-stat-pill {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--text-primary);
@@ -440,7 +440,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 .hero-stat-pill .stat-label {
   display: block;
-  font-size: 0.45rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -461,7 +461,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-bar-icon {
-  font-size: 0.55rem;
+  font-size: 0.7rem;
   width: 12px;
   text-align: center;
   flex-shrink: 0;
@@ -469,7 +469,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 .hero-bar {
   flex: 1;
-  height: 10px;
+  height: 14px;
   background: var(--bg-surface);
   border-radius: 5px;
   overflow: hidden;
@@ -491,7 +491,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.5rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0,0,0,0.6);
@@ -522,7 +522,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-skill-name {
-  font-size: 0.5rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -606,13 +606,13 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .arena-unit {
-  width: 56px;
-  height: 56px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.9rem;
   position: relative;
   overflow: hidden;
 }
@@ -636,13 +636,13 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 .arena-unit-bar {
   position: absolute;
-  bottom: -6px;
+  bottom: -7px;
   left: 50%;
   transform: translateX(-50%);
-  width: 40px;
-  height: 4px;
+  width: 50px;
+  height: 6px;
   background: var(--bg-surface);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
@@ -717,7 +717,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .loot-line {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   font-family: var(--font-mono);
   line-height: 1.4;
@@ -749,7 +749,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .battle-right-title {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -779,15 +779,15 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .enemy-bar-level {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
 }
 
 .enemy-hp {
   width: 100%;
-  height: 12px;
+  height: 16px;
   background: var(--bg-surface);
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -799,7 +799,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .enemy-hp-text {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   font-family: var(--font-mono);
   text-align: right;
@@ -834,15 +834,15 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-avatar {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: rgba(245,183,49,0.1);
   border: 2px solid var(--accent-gold);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -867,7 +867,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-detail-class {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: var(--accent-purple);
   font-weight: 600;
   text-transform: uppercase;
@@ -907,7 +907,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .stat-box-label {
-  font-size: 0.55rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1006,7 +1006,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .inv-slot-icon { font-size: 1.5rem; opacity: 0.3; }
-.inv-slot-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; }
+.inv-slot-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
 
 /* ─── SHOP PAGE ─────────────────────────── */
 .shop-page {
@@ -1053,7 +1053,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .tier-chip {
   padding: 0.25rem 0.6rem;
   border-radius: var(--radius-sm);
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   border: 1px solid;
