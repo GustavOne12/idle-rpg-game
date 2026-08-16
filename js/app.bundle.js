@@ -158,15 +158,15 @@
           '<div class="hero-card-avatar">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div>' +
           '<div class="hero-card-info">' +
             '<div class="hero-card-name-row"><span class="hero-card-name">' + c.nome + '</span><span class="hero-card-lv">Lv ' + c.nivel + '</span></div>' +
-            '<div class="hero-card-bars">' +
-              '<div class="hero-bar-row"><span class="hero-bar-icon">❤️</span><div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-text">' + c.stats.hp + '/' + c.stats.hpMax + '</div></div></div>' +
-            '</div>' +
-            '<div class="hero-card-stats">' +
-              '<div class="hero-stat-pill"><span class="stat-label">ATK</span><span class="stat-num">' + c.stats.atk + '</span></div>' +
-              '<div class="hero-stat-pill"><span class="stat-label">DEF</span><span class="stat-num">' + c.stats.def + '%</span></div>' +
-              '<div class="hero-stat-pill"><span class="stat-label">CRT</span><span class="stat-num">' + c.stats.chanceCritica + '%</span></div>' +
-            '</div>' +
           '</div>' +
+        '</div>' +
+        '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-text">' + c.stats.hp + '/' + c.stats.hpMax + '</div></div>' +
+        '<div class="hero-card-stats">' +
+          '<div class="hero-stat-row"><span class="stat-label">Ataque</span><span class="stat-num">' + c.stats.atk + '</span></div>' +
+          '<div class="hero-stat-row"><span class="stat-label">Defesa</span><span class="stat-num">' + c.stats.def + '%</span></div>' +
+          '<div class="hero-stat-row"><span class="stat-label">C. Crítica</span><span class="stat-num">' + c.stats.chanceCritica + '%</span></div>' +
+          '<div class="hero-stat-row"><span class="stat-label">D. Crítico</span><span class="stat-num">' + c.stats.danoCritico + '%</span></div>' +
+          '<div class="hero-stat-row"><span class="stat-label">V. Ataque</span><span class="stat-num">' + c.stats.velocidadeAtaque + '</span></div>' +
         '</div>' +
         '<div class="hero-card-skills">' + skillSlot1 + skillSlot2 + '</div>' +
       '</div>';

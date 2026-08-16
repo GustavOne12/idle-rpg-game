@@ -354,7 +354,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   flex-direction: column;
   gap: 0.25rem;
   min-height: 0;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .hero-card.filled { border-color: var(--accent-gold); }
@@ -413,59 +413,32 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   flex-shrink: 0;
 }
 
-.hero-card-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
 .hero-card-stats {
   display: flex;
-  gap: 0.25rem;
-  margin-top: 0.2rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border);
 }
 
-.hero-stat-pill {
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  color: var(--text-primary);
-  background: var(--bg-panel);
-  padding: 0.05rem 0.4rem;
-  border-radius: 3px;
-  border: 1px solid var(--border);
-  line-height: 1.4;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.25rem;
-}
-
-.hero-stat-pill .stat-label {
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  font-family: var(--font-main);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.hero-stat-pill .stat-num {
-  color: var(--accent-gold);
-}
-
-.hero-bar-row {
+.hero-stat-row {
   display: flex;
-  align-items: center;
-  gap: 0.3rem;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
-.hero-bar-icon {
-  font-size: 0.7rem;
-  width: 12px;
-  text-align: center;
-  flex-shrink: 0;
+.hero-stat-row .stat-label {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.hero-stat-row .stat-num {
+  color: var(--accent-gold);
+  font-family: var(--font-mono);
+  font-weight: 700;
 }
 
 .hero-bar {
@@ -502,7 +475,9 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .hero-card-skills {
   display: flex;
   gap: 0.3rem;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--border);
 }
 
 .hero-skill-slot {
