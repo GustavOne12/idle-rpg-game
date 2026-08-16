@@ -22,6 +22,8 @@
     images: { perfil: 'chars/Luna/Perfil - LUNA.png', combat: 'chars/Luna/Combat - Luna.png' },
   };
 
+  var CHARACTER_TEMPLATES = { luna_01: LUNA };
+
   // ─── STATE ───────────────────────────────
   var STORAGE_KEY = 'idle-rpg-save';
   var listeners = [];
