@@ -140,9 +140,9 @@
               '<div class="hero-bar-row"><span class="hero-bar-icon">❤️</span><div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-text">' + c.stats.hp + '/' + c.stats.hpMax + '</div></div></div>' +
             '</div>' +
             '<div class="hero-card-stats">' +
-              '<span class="hero-stat-pill">ATK ' + c.stats.atk + '</span>' +
-              '<span class="hero-stat-pill">DEF ' + c.stats.def + '%</span>' +
-              '<span class="hero-stat-pill">CRT ' + c.stats.chanceCritica + '%</span>' +
+              '<div class="hero-stat-pill"><span class="stat-label">ATK</span><span class="stat-num">' + c.stats.atk + '</span></div>' +
+              '<div class="hero-stat-pill"><span class="stat-label">DEF</span><span class="stat-num">' + c.stats.def + '%</span></div>' +
+              '<div class="hero-stat-pill"><span class="stat-label">CRT</span><span class="stat-num">' + c.stats.chanceCritica + '%</span></div>' +
             '</div>' +
           '</div>' +
         '</div>' +

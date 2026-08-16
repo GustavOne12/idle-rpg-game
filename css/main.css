@@ -135,6 +135,13 @@ body {
   overflow-x: hidden;
 }
 
+#content > .battle-page {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0.75rem;
+  height: calc(100% - 1.5rem);
+}
+
 /* ─── BOTTOM NAV ────────────────────────── */
 #bottom-nav {
   display: flex;
@@ -404,21 +411,39 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-stats {
-  display: flex;
-  gap: 0.3rem;
-  flex-wrap: wrap;
-  margin-top: 0.2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.2rem;
+  margin-top: 0.3rem;
 }
 
 .hero-stat-pill {
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   font-weight: 700;
   font-family: var(--font-mono);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   background: var(--bg-panel);
-  padding: 0.1rem 0.35rem;
+  padding: 0.2rem 0.3rem;
   border-radius: 3px;
-  white-space: nowrap;
+  text-align: center;
+  border: 1px solid var(--border);
+  line-height: 1.2;
+}
+
+.hero-stat-pill .stat-label {
+  display: block;
+  font-size: 0.45rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: var(--font-main);
+  font-weight: 600;
+}
+
+.hero-stat-pill .stat-num {
+  display: block;
+  color: var(--accent-gold);
+  font-size: 0.7rem;
 }
 
 .hero-bar-row {
