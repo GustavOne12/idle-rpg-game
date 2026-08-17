@@ -234,15 +234,15 @@
         '<div class="battle-center">' +
           '<div class="battle-wave-bar"><span class="wave-label">WAVE ' + state.progresso.waveAtual + '</span><span class="diff-label">Dificuldade ' + state.progresso.dificuldade + '</span></div>' +
           '<div class="battle-arena"><div class="arena-side">' + arenaHeroes + '</div><div class="arena-vs">VS</div><div class="arena-side">' + arenaEnemies + '</div></div>' +
+          '<div class="battle-loot">' +
+            '<div class="loot-header"><span class="loot-title">📦 Drop de Itens</span></div>' +
+            '<div class="loot-items" id="loot-log">' +
+              '<div class="loot-placeholder">Os drops aparecerão durante o combate...</div>' +
+            '</div>' +
+          '</div>' +
           '<div class="battle-banner hidden" id="battle-banner"></div>' +
         '</div>' +
         '<div class="battle-right"><div class="battle-right-title">Barra de Vida dos Inimigos</div>' + enemyBars + '</div>' +
-        '<div class="battle-loot">' +
-          '<div class="loot-header"><span class="loot-title">📦 Drop de Itens</span></div>' +
-          '<div class="loot-items" id="loot-log">' +
-            '<div class="loot-placeholder">Os drops aparecerão durante o combate...</div>' +
-          '</div>' +
-        '</div>' +
       '</div>';
 
     updateBattleUI();
