@@ -158,6 +158,11 @@
           velocidadeAtaque: c.stats.velocidadeAtaque, chanceCritica: c.stats.chanceCritica, danoCritico: c.stats.danoCritico
         },
         habilidades: c.habilidades,
+        cds: (c.habilidades || []).reduce(function (acc, sk) {
+          var total = sk.tipo === 'basico' ? (1 / c.stats.velocidadeAtaque) : (sk.cooldown || 8);
+          acc[sk.id] = { total: total, restante: total };
+          return acc;
+        }, {}),
         atkTempo: 0,
         morto: false,
       };
@@ -180,32 +185,40 @@
     var eq = getEquipe();
 
     var heroCards = eq.map(function (c, i) {
-      if (!c) return '<div class="hero-empty">Slot ' + (i + 1) + ' — Vazio</div>';
-      var hpPct = 100;
-
+      var num = ['①', '②', '③'][i] || (i + 1);
+      if (!c) {
+        return '<div class="hero-empty">' +
+          '<span class="hero-empty-num">' + num + '</span>' +
+          '<span class="hero-empty-icon">👤</span>' +
+          '<span class="hero-empty-text">Vazio</span>' +
+        '</div>';
+      }
       var skills = c.habilidades || [];
-      var skill1 = skills[0];
-      var skill2 = skills[1];
 
-      var skillSlot1 = skill1
-        ? '<div class="hero-skill-slot" title="' + skill1.nome + '"><div class="hero-skill-cd-overlay" id="cd-' + skill1.id + '"><div class="hero-skill-cd-ring"></div><span class="hero-skill-cd-text"></span></div><span class="hero-skill-icon">⚡</span><span class="hero-skill-name">' + skill1.nome + '</span></div>'
-        : '<div class="hero-skill-slot"><span class="hero-skill-icon">—</span><span class="hero-skill-name">Vazio</span></div>';
-
-      var skillSlot2 = skill2
-        ? '<div class="hero-skill-slot" title="' + skill2.nome + '"><div class="hero-skill-cd-overlay" id="cd-' + skill2.id + '"><div class="hero-skill-cd-ring"></div><span class="hero-skill-cd-text"></span></div><span class="hero-skill-icon">💫</span><span class="hero-skill-name">' + skill2.nome + '</span></div>'
-        : '<div class="hero-skill-slot"><span class="hero-skill-icon">—</span><span class="hero-skill-name">Vazio</span></div>';
+      function skillSlot(sk, icon) {
+        if (!sk) return '<div class="hero-skill-slot empty"><span class="hero-skill-icon">—</span></div>';
+        return '<div class="hero-skill-slot cd" data-cd-id="' + sk.id + '" title="' + sk.nome + '">' +
+          '<div class="hero-skill-ring"></div>' +
+          '<span class="hero-skill-icon">' + icon + '</span>' +
+          '<span class="hero-skill-cd-text"></span>' +
+        '</div>';
+      }
 
       var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
 
       return '<div class="hero-card filled" data-hero-id="' + c.id + '">' +
         '<div class="hero-card-top">' +
+          '<span class="hero-slot-num">' + num + '</span>' +
           '<div class="hero-card-avatar">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div>' +
           '<div class="hero-card-info">' +
             '<div class="hero-card-name-row"><span class="hero-card-name">' + c.nome + '</span><span class="hero-card-lv">Lv ' + c.nivel + '</span></div>' +
           '</div>' +
         '</div>' +
-        '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-text">' + c.stats.hpMax + '/' + c.stats.hpMax + '</div></div>' +
-        '<div class="hero-card-skills">' + skillSlot1 + skillSlot2 + '</div>' +
+        '<div class="hero-hp-row">' +
+          '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:100%"></div></div>' +
+          '<span class="hero-hp-text">' + c.stats.hpMax + '/' + c.stats.hpMax + '</span>' +
+        '</div>' +
+        '<div class="hero-card-skills">' + skillSlot(skills[0], '🔮') + skillSlot(skills[1], '💫') + '</div>' +
       '</div>';
     }).join('');
 
@@ -213,17 +226,27 @@
       var heroChar = state.personagens.find(function (p) { return p.id === h.id; });
       var combatSrc = heroChar && heroChar.images && heroChar.images.combat ? heroChar.images.combat : '';
       var inner = combatSrc ? '<img src="' + combatSrc + '" alt="' + h.nome + '" class="arena-unit-img" />' : '🌙';
-      return '<div class="arena-unit hero-unit" data-hero-id="' + h.id + '">' + inner + '<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-green)"></div></div></div>';
+      return '<div class="arena-side-item">' +
+        '<div class="arena-unit hero-unit" data-hero-id="' + h.id + '">' + inner +
+          '<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-green)"></div></div>' +
+        '</div>' +
+        '<div class="arena-unit-label">' + h.nome + '</div>' +
+      '</div>';
     }).join('');
 
     var arenaEnemies = battle.enemies.map(function (e) {
-      return '<div class="arena-unit enemy-unit" data-enemy-id="' + e.id + '">' + e.emoji + '<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-red)"></div></div></div>';
+      return '<div class="arena-side-item">' +
+        '<div class="arena-unit enemy-unit" data-enemy-id="' + e.id + '">' + e.emoji +
+          '<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-red)"></div></div>' +
+        '</div>' +
+        '<div class="arena-unit-label">' + e.nome + '</div>' +
+      '</div>';
     }).join('');
 
     var enemyBars = battle.enemies.map(function (e) {
       var pct = 100;
       return '<div class="enemy-bar-card" data-enemy-id="' + e.id + '">' +
-        '<div class="enemy-bar-top"><span class="enemy-bar-name">' + e.nome + '</span><span class="enemy-bar-level">Lv ' + e.lv + '</span></div>' +
+        '<div class="enemy-bar-top"><span class="enemy-bar-icon">' + e.emoji + '</span><span class="enemy-bar-name">' + e.nome + '</span><span class="enemy-bar-level">Lv ' + e.lv + '</span></div>' +
         '<div class="enemy-hp"><div class="enemy-hp-fill" style="width:' + pct + '%"></div></div>' +
         '<div class="enemy-hp-text">' + e.hp + ' / ' + e.hpMax + '</div></div>';
     }).join('');
@@ -232,17 +255,21 @@
       '<div class="battle-page">' +
         '<div class="battle-left"><div class="battle-left-title">Sua Equipe</div>' + heroCards + '</div>' +
         '<div class="battle-center">' +
-          '<div class="battle-wave-bar"><span class="wave-label">WAVE ' + state.progresso.waveAtual + '</span><span class="diff-label">Dificuldade ' + state.progresso.dificuldade + '</span></div>' +
-          '<div class="battle-arena"><div class="arena-side">' + arenaHeroes + '</div><div class="arena-vs">VS</div><div class="arena-side">' + arenaEnemies + '</div></div>' +
-          '<div class="battle-loot">' +
-            '<div class="loot-header"><span class="loot-title">📦 Drop de Itens</span></div>' +
-            '<div class="loot-items" id="loot-log">' +
-              '<div class="loot-placeholder">Os drops aparecerão durante o combate...</div>' +
-            '</div>' +
+          '<div class="battle-wave-bar"><span class="wave-label">WAVE ' + state.progresso.waveAtual + ' / ' + state.progresso.waveMax + '</span><span class="diff-label">Dificuldade ' + state.progresso.dificuldade + '</span></div>' +
+          '<div class="battle-arena">' +
+            '<div class="arena-side">' + arenaHeroes + '</div>' +
+            '<div class="arena-vs">VS</div>' +
+            '<div class="arena-side">' + arenaEnemies + '</div>' +
           '</div>' +
-          '<div class="battle-banner hidden" id="battle-banner"></div>' +
         '</div>' +
-        '<div class="battle-right"><div class="battle-right-title">Barra de Vida dos Inimigos</div>' + enemyBars + '</div>' +
+        '<div class="battle-loot">' +
+          '<div class="loot-header"><span class="loot-title">📦 Drop de Itens</span></div>' +
+          '<div class="loot-items" id="loot-log">' +
+            '<div class="loot-placeholder">Os drops aparecerão durante o combate...</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="battle-right"><div class="battle-right-title">Inimigos</div>' + enemyBars + '</div>' +
+        '<div class="battle-banner hidden" id="battle-banner"></div>' +
       '</div>';
 
     updateBattleUI();
@@ -278,7 +305,12 @@
         alvo.hp = Math.max(0, alvo.hp - dano);
         if (alvo.hp <= 0) alvo.morto = true;
         animarAtaque('hero', h.id);
+        if (habilidade && h.cds[habilidade.id]) h.cds[habilidade.id].restante = h.cds[habilidade.id].total;
       }
+      // tick down all skill cooldowns
+      Object.keys(h.cds).forEach(function (k) {
+        if (h.cds[k].restante > 0) h.cds[k].restante = Math.max(0, h.cds[k].restante - dt);
+      });
     });
 
     // Enemies attack
@@ -332,9 +364,29 @@
       var card = document.querySelector('.hero-card[data-hero-id="' + h.id + '"]');
       if (card) {
         var fill = card.querySelector('.hero-bar-fill.hp');
-        var txt = card.querySelector('.hero-bar-text');
+        var txt = card.querySelector('.hero-hp-text');
         if (fill) fill.style.width = pct + '%';
         if (txt) txt.textContent = h.stats.hp + '/' + h.stats.hpMax;
+
+        (h.habilidades || []).forEach(function (sk) {
+          var slot = card.querySelector('.hero-skill-slot[data-cd-id="' + sk.id + '"]');
+          var cd = h.cds[sk.id];
+          if (!slot || !cd) return;
+          var ring = slot.querySelector('.hero-skill-ring');
+          var cdText = slot.querySelector('.hero-skill-cd-text');
+          var restante = cd.restante;
+          var cdPct = cd.total > 0 ? (restante / cd.total) * 100 : 0;
+          if (ring) ring.style.setProperty('--cd-pct', cdPct);
+          if (restante > 0) {
+            slot.classList.add('cd');
+            slot.classList.remove('ready');
+            if (cdText) cdText.textContent = restante.toFixed(1).replace('.', ',') + 's';
+          } else {
+            slot.classList.remove('cd');
+            slot.classList.add('ready');
+            if (cdText) cdText.textContent = '';
+          }
+        });
       }
       var aUnit = document.querySelector('.arena-unit.hero-unit[data-hero-id="' + h.id + '"]');
       if (aUnit) {
