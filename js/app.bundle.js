@@ -133,7 +133,7 @@
 
   // ─── PAGE: BATTLE ────────────────────────
   var ENEMY_TEMPLATES = {
-    goblin: { nome: 'Goblin', lv: 1, hpMax: 60, atk: 1, velocidadeAtaque: 1.0, emoji: '👹' },
+    goblin: { nome: 'Goblin', lv: 1, hpMax: 9999, atk: 1, velocidadeAtaque: 1.0, emoji: '👹' },
     orc: { nome: 'Orc', lv: 2, hpMax: 90, atk: 1, velocidadeAtaque: 0.8, emoji: '👺' },
     troll: { nome: 'Troll', lv: 3, hpMax: 140, atk: 1, velocidadeAtaque: 0.6, emoji: '👿' },
   };
