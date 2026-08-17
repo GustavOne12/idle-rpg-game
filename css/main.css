@@ -136,7 +136,7 @@ body {
 }
 
 #content > .battle-page {
-  max-width: 1040px;
+  max-width: 1300px;
   margin: 0 auto;
   min-height: 100%;
   height: auto;
@@ -316,15 +316,16 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 /* ─── BATTLE PAGE ───────────────────────── */
 .battle-page {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 220px;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: 260px auto 200px;
+  grid-template-rows: auto auto;
   grid-template-areas:
     "left center right"
     "left loot  right";
-  gap: 0.6rem;
-  padding: 0.75rem;
-  align-items: stretch;
+  gap: 1.2rem;
+  padding: 1.5rem;
+  align-items: center;
   align-content: center;
+  justify-content: center;
   position: relative;
   min-height: 100%;
 }
@@ -572,6 +573,9 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 /* CENTER — Battle field */
 .battle-center {
   grid-area: center;
+  width: min(56vw, 680px);
+  height: min(54vh, 480px);
+  justify-self: center;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -579,7 +583,6 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  min-height: 0;
 }
 
 .battle-banner {
@@ -620,22 +623,9 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   color: var(--text-secondary);
 }
 
-/* CENTER — Battle field */
-.battle-center {
-  grid-area: center;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  min-height: 0;
-}
-
 .battle-arena {
-  flex: none;
-  height: 250px;
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -787,6 +777,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 /* LOOT */
 .battle-loot {
   grid-area: loot;
+  width: min(56vw, 680px);
+  justify-self: center;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -1501,8 +1493,14 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
   .enemy-bar-card { min-width: 150px; }
 
+  .battle-center {
+    width: 100%;
+    height: 48vh;
+    min-height: 320px;
+    max-height: 440px;
+  }
+
   .battle-arena {
-    height: 220px;
     min-height: 0;
     gap: 1rem;
   }
@@ -1515,7 +1513,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
   .stats-grid { grid-template-columns: 1fr 1fr; }
 
-  .battle-loot { min-height: 80px; max-height: 120px; }
+  .battle-loot { width: 100%; min-height: 80px; max-height: 120px; }
 
   .heroes-layout {
     grid-template-columns: 1fr;
