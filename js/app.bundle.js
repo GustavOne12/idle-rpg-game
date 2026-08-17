@@ -180,7 +180,7 @@
     var eq = getEquipe();
 
     var heroCards = eq.map(function (c, i) {
-      if (!c) return '<div class="hero-empty">Slot ' + (i + 1) + ' vazio</div>';
+      if (!c) return '<div class="hero-empty">Slot ' + (i + 1) + ' — Vazio</div>';
       var hpPct = 100;
 
       var skills = c.habilidades || [];
@@ -284,6 +284,7 @@
         var dano = Math.max(1, Math.round(h.stats.atk * mult));
         alvo.hp = Math.max(0, alvo.hp - dano);
         if (alvo.hp <= 0) alvo.morto = true;
+        animarAtaque('hero', h.id);
       }
     });
 
@@ -299,6 +300,7 @@
         var danoE = Math.max(1, e.atk);
         alvo.stats.hp = Math.max(0, alvo.stats.hp - danoE);
         if (alvo.stats.hp <= 0) alvo.morto = true;
+        animarAtaque('enemy', e.id);
       }
     });
 
@@ -316,6 +318,18 @@
       stopBattleTimer();
       mostrarBanner('DERROTA!', 'Sua equipe foi derrotada. Reinicie os testes.');
     }
+  }
+
+  function animarAtaque(tipo, id) {
+    var sel = tipo === 'hero' ? '.arena-unit.hero-unit[data-hero-id="' + id + '"]' : '.arena-unit.enemy-unit[data-enemy-id="' + id + '"]';
+    var el = document.querySelector(sel);
+    if (!el) return;
+    el.classList.remove('atacando');
+    void el.offsetWidth;
+    el.classList.add('atacando');
+    setTimeout(function () {
+      el.classList.remove('atacando');
+    }, 260);
   }
 
   function updateBattleUI() {
