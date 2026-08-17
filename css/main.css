@@ -136,10 +136,10 @@ body {
 }
 
 #content > .battle-page {
-  max-width: 1120px;
+  max-width: 1040px;
   margin: 0 auto;
-  height: 100%;
   min-height: 100%;
+  height: auto;
 }
 
 /* ─── BOTTOM NAV ────────────────────────── */
@@ -316,7 +316,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 /* ─── BATTLE PAGE ───────────────────────── */
 .battle-page {
   display: grid;
-  grid-template-columns: 230px minmax(0, 1fr) 210px;
+  grid-template-columns: 280px minmax(0, 1fr) 220px;
   grid-template-rows: minmax(0, 1fr) auto;
   grid-template-areas:
     "left center right"
@@ -324,6 +324,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   gap: 0.6rem;
   padding: 0.75rem;
   align-items: stretch;
+  align-content: center;
   position: relative;
   min-height: 100%;
 }
@@ -367,13 +368,6 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   display: flex;
   gap: 0.5rem;
   align-items: center;
-}
-
-.hero-slot-num {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--accent-gold);
-  flex-shrink: 0;
 }
 
 .hero-card-avatar {
@@ -466,15 +460,16 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 .hero-skill-slot {
   position: relative;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
   background: var(--bg-panel);
   border: 2px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .hero-skill-slot.ready {
@@ -485,11 +480,23 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .hero-skill-slot.empty { opacity: 0.4; }
 
 .hero-skill-icon {
-  font-size: 1.25rem;
-  line-height: 1;
   position: relative;
   z-index: 2;
   transition: opacity var(--transition), filter var(--transition);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.hero-skill-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
 }
 
 .hero-skill-slot.cd .hero-skill-icon {
@@ -499,22 +506,24 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 .hero-skill-ring {
   position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  background: conic-gradient(var(--accent-purple) calc(var(--cd-pct, 0) * 1%), transparent 0);
+  inset: 0;
+  border-radius: var(--radius-sm);
+  background: conic-gradient(rgba(168,85,247,0.55) calc(var(--cd-pct, 0) * 1%), transparent 0);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition);
+  z-index: 1;
 }
 
 .hero-skill-slot.cd .hero-skill-ring { opacity: 1; }
 
 .hero-skill-cd-text {
   position: absolute;
-  bottom: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.6rem;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
   font-weight: 800;
   color: #fff;
   font-family: var(--font-mono);
@@ -522,7 +531,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+  z-index: 3;
 }
 
 .hero-skill-slot.cd .hero-skill-cd-text { opacity: 1; }
@@ -624,14 +634,14 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .battle-arena {
-  flex: 1;
+  flex: none;
+  height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1.25rem;
   padding: 0.75rem;
   position: relative;
-  min-height: 0;
   background:
     radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.08) 0%, transparent 55%),
     radial-gradient(ellipse at 50% 110%, rgba(34,197,94,0.06) 0%, transparent 45%),
@@ -1492,7 +1502,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   .enemy-bar-card { min-width: 150px; }
 
   .battle-arena {
-    min-height: 200px;
+    height: 220px;
+    min-height: 0;
     gap: 1rem;
   }
 

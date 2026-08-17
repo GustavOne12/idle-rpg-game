@@ -24,6 +24,11 @@
 
   var CHARACTER_TEMPLATES = { luna_01: LUNA };
 
+  var SKILL_ICONS = {
+    orbe_de_prata: 'chars/Luna/Ataque básico - Luna.jpg',
+    eclipse_total: 'chars/Luna/Habilidade - Eclipse Total.jpg',
+  };
+
   // ─── STATE ───────────────────────────────
   var STORAGE_KEY = 'idle-rpg-save';
   var listeners = [];
@@ -197,9 +202,10 @@
 
       function skillSlot(sk, icon) {
         if (!sk) return '<div class="hero-skill-slot empty"><span class="hero-skill-icon">—</span></div>';
+        var img = SKILL_ICONS[sk.id] ? '<img src="' + SKILL_ICONS[sk.id] + '" alt="' + sk.nome + '" />' : icon;
         return '<div class="hero-skill-slot cd" data-cd-id="' + sk.id + '" title="' + sk.nome + '">' +
           '<div class="hero-skill-ring"></div>' +
-          '<span class="hero-skill-icon">' + icon + '</span>' +
+          '<span class="hero-skill-icon">' + img + '</span>' +
           '<span class="hero-skill-cd-text"></span>' +
         '</div>';
       }
@@ -208,7 +214,6 @@
 
       return '<div class="hero-card filled" data-hero-id="' + c.id + '">' +
         '<div class="hero-card-top">' +
-          '<span class="hero-slot-num">' + num + '</span>' +
           '<div class="hero-card-avatar">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div>' +
           '<div class="hero-card-info">' +
             '<div class="hero-card-name-row"><span class="hero-card-name">' + c.nome + '</span><span class="hero-card-lv">Lv ' + c.nivel + '</span></div>' +
