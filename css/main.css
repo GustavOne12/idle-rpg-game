@@ -371,15 +371,15 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-avatar {
-  width: 54px;
-  height: 54px;
+  width: 60px;
+  height: 60px;
   border-radius: var(--radius-sm);
   background: rgba(245,183,49,0.08);
   border: 1px solid var(--border-gold);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -418,34 +418,6 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   flex-shrink: 0;
 }
 
-.hero-card-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 0.05rem;
-  margin-top: 0.25rem;
-  padding-top: 0.25rem;
-  border-top: 1px solid var(--border);
-}
-
-.hero-stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  font-size: 0.7rem;
-  line-height: 1.3;
-}
-
-.hero-stat-row .stat-label {
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.hero-stat-row .stat-num {
-  color: var(--accent-gold);
-  font-family: var(--font-mono);
-  font-weight: 700;
-}
-
 .hero-bar {
   width: 100%;
   flex: none;
@@ -479,15 +451,18 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-skills {
+  flex: 1;
   display: flex;
   gap: 0.3rem;
   margin-top: 0.35rem;
   padding-top: 0.25rem;
   border-top: 1px solid var(--border);
+  min-height: 0;
 }
 
 .hero-skill-slot {
   flex: 1;
+  min-width: 0;
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -495,6 +470,10 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   text-align: center;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero-skill-icon {

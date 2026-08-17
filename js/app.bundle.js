@@ -205,13 +205,6 @@
           '</div>' +
         '</div>' +
         '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-text">' + c.stats.hpMax + '/' + c.stats.hpMax + '</div></div>' +
-        '<div class="hero-card-stats">' +
-          '<div class="hero-stat-row"><span class="stat-label">Ataque</span><span class="stat-num">' + c.stats.atk + '</span></div>' +
-          '<div class="hero-stat-row"><span class="stat-label">Defesa</span><span class="stat-num">' + c.stats.def + '%</span></div>' +
-          '<div class="hero-stat-row"><span class="stat-label">C. Crítica</span><span class="stat-num">' + c.stats.chanceCritica + '%</span></div>' +
-          '<div class="hero-stat-row"><span class="stat-label">D. Crítico</span><span class="stat-num">' + c.stats.danoCritico + '%</span></div>' +
-          '<div class="hero-stat-row"><span class="stat-label">V. Ataque</span><span class="stat-num">' + c.stats.velocidadeAtaque + '</span></div>' +
-        '</div>' +
         '<div class="hero-card-skills">' + skillSlot1 + skillSlot2 + '</div>' +
       '</div>';
     }).join('');
