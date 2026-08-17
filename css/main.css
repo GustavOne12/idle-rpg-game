@@ -564,6 +564,44 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+}
+
+.battle-banner {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 24, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.battle-banner.hidden { display: none; }
+
+.battle-banner-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: var(--shadow-glow-gold);
+  text-align: center;
+}
+
+.battle-banner-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--accent-gold);
+}
+
+.battle-banner-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 .battle-arena {

@@ -132,12 +132,56 @@
   }
 
   // ─── PAGE: BATTLE ────────────────────────
+  var ENEMY_TEMPLATES = {
+    goblin: { nome: 'Goblin', lv: 1, hpMax: 60, atk: 1, velocidadeAtaque: 1.0, emoji: '👹' },
+    orc: { nome: 'Orc', lv: 2, hpMax: 90, atk: 1, velocidadeAtaque: 0.8, emoji: '👺' },
+    troll: { nome: 'Troll', lv: 3, hpMax: 140, atk: 1, velocidadeAtaque: 0.6, emoji: '👿' },
+  };
+
+  var WAVE_ENEMIES = { 1: ['goblin'] };
+
+  function getWaveEnemies(n) {
+    return WAVE_ENEMIES[n] || ['goblin'];
+  }
+
+  var battle = null;
+  var battleTimer = null;
+
+  function startBattle() {
+    var eq = getEquipe();
+
+    var heroes = eq.filter(Boolean).map(function (c) {
+      return {
+        id: c.id, nome: c.nome,
+        stats: {
+          hp: c.stats.hpMax, hpMax: c.stats.hpMax, atk: c.stats.atk, def: c.stats.def,
+          velocidadeAtaque: c.stats.velocidadeAtaque, chanceCritica: c.stats.chanceCritica, danoCritico: c.stats.danoCritico
+        },
+        habilidades: c.habilidades,
+        atkTempo: 0,
+        morto: false,
+      };
+    });
+
+    var enemies = getWaveEnemies(state.progresso.waveAtual).map(function (key) {
+      var t = ENEMY_TEMPLATES[key];
+      return {
+        id: key, nome: t.nome, lv: t.lv,
+        hp: t.hpMax, hpMax: t.hpMax, atk: t.atk, velocidadeAtaque: t.velocidadeAtaque, emoji: t.emoji,
+        atkTempo: 0, morto: false,
+      };
+    });
+
+    battle = { heroes: heroes, enemies: enemies, concluida: false, derrota: false };
+  }
+
   function renderBattle() {
+    startBattle();
     var eq = getEquipe();
 
     var heroCards = eq.map(function (c, i) {
       if (!c) return '<div class="hero-empty">Slot ' + (i + 1) + ' vazio</div>';
-      var hpPct = Math.round((c.stats.hp / c.stats.hpMax) * 100);
+      var hpPct = 100;
 
       var skills = c.habilidades || [];
       var skill1 = skills[0];
@@ -153,14 +197,14 @@
 
       var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
 
-      return '<div class="hero-card filled">' +
+      return '<div class="hero-card filled" data-hero-id="' + c.id + '">' +
         '<div class="hero-card-top">' +
           '<div class="hero-card-avatar">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div>' +
           '<div class="hero-card-info">' +
             '<div class="hero-card-name-row"><span class="hero-card-name">' + c.nome + '</span><span class="hero-card-lv">Lv ' + c.nivel + '</span></div>' +
           '</div>' +
         '</div>' +
-        '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-text">' + c.stats.hp + '/' + c.stats.hpMax + '</div></div>' +
+        '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div><div class="hero-bar-text">' + c.stats.hpMax + '/' + c.stats.hpMax + '</div></div>' +
         '<div class="hero-card-stats">' +
           '<div class="hero-stat-row"><span class="stat-label">Ataque</span><span class="stat-num">' + c.stats.atk + '</span></div>' +
           '<div class="hero-stat-row"><span class="stat-label">Defesa</span><span class="stat-num">' + c.stats.def + '%</span></div>' +
@@ -172,26 +216,20 @@
       '</div>';
     }).join('');
 
-    var arenaHeroes = eq.map(function (c) {
-      if (!c) return '';
-      var combatSrc = c.images && c.images.combat ? c.images.combat : '';
-      var inner = combatSrc ? '<img src="' + combatSrc + '" alt="' + c.nome + '" class="arena-unit-img" />' : '🌙';
-      return '<div class="arena-unit hero-unit">' + inner + '<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-green)"></div></div></div>';
+    var arenaHeroes = battle.heroes.map(function (h) {
+      var heroChar = state.personagens.find(function (p) { return p.id === h.id; });
+      var combatSrc = heroChar && heroChar.images && heroChar.images.combat ? heroChar.images.combat : '';
+      var inner = combatSrc ? '<img src="' + combatSrc + '" alt="' + h.nome + '" class="arena-unit-img" />' : '🌙';
+      return '<div class="arena-unit hero-unit" data-hero-id="' + h.id + '">' + inner + '<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-green)"></div></div></div>';
     }).join('');
 
-    var enemies = [
-      { nome: 'Goblin', lv: 1, hp: 60, hpMax: 60, alive: true },
-      { nome: 'Orc', lv: 2, hp: 90, hpMax: 90, alive: true },
-      { nome: 'Troll', lv: 3, hp: 140, hpMax: 140, alive: true },
-    ];
-
-    var arenaEnemies = enemies.filter(function (e) { return e.alive; }).map(function () {
-      return '<div class="arena-unit enemy-unit">👹<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-red)"></div></div></div>';
+    var arenaEnemies = battle.enemies.map(function (e) {
+      return '<div class="arena-unit enemy-unit" data-enemy-id="' + e.id + '">' + e.emoji + '<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-red)"></div></div></div>';
     }).join('');
 
-    var enemyBars = enemies.filter(function (e) { return e.alive; }).map(function (e) {
-      var pct = Math.round((e.hp / e.hpMax) * 100);
-      return '<div class="enemy-bar-card">' +
+    var enemyBars = battle.enemies.map(function (e) {
+      var pct = 100;
+      return '<div class="enemy-bar-card" data-enemy-id="' + e.id + '">' +
         '<div class="enemy-bar-top"><span class="enemy-bar-name">' + e.nome + '</span><span class="enemy-bar-level">Lv ' + e.lv + '</span></div>' +
         '<div class="enemy-hp"><div class="enemy-hp-fill" style="width:' + pct + '%"></div></div>' +
         '<div class="enemy-hp-text">' + e.hp + ' / ' + e.hpMax + '</div></div>';
@@ -203,6 +241,7 @@
         '<div class="battle-center">' +
           '<div class="battle-wave-bar"><span class="wave-label">WAVE ' + state.progresso.waveAtual + '</span><span class="diff-label">Dificuldade ' + state.progresso.dificuldade + '</span></div>' +
           '<div class="battle-arena"><div class="arena-side">' + arenaHeroes + '</div><div class="arena-vs">VS</div><div class="arena-side">' + arenaEnemies + '</div></div>' +
+          '<div class="battle-banner hidden" id="battle-banner"></div>' +
         '</div>' +
         '<div class="battle-right"><div class="battle-right-title">Barra de Vida dos Inimigos</div>' + enemyBars + '</div>' +
         '<div class="battle-loot">' +
@@ -212,6 +251,119 @@
           '</div>' +
         '</div>' +
       '</div>';
+
+    updateBattleUI();
+    startBattleTimer();
+  }
+
+  function startBattleTimer() {
+    stopBattleTimer();
+    battleTimer = setInterval(battleTick, 100);
+  }
+
+  function stopBattleTimer() {
+    if (battleTimer) { clearInterval(battleTimer); battleTimer = null; }
+  }
+
+  function battleTick() {
+    if (!battle || battle.concluida || battle.derrota) return;
+
+    var dt = 0.1;
+
+    // Heroes attack
+    battle.heroes.forEach(function (h) {
+      if (h.morto) return;
+      h.atkTempo += dt;
+      var intervalo = 1 / h.stats.velocidadeAtaque;
+      while (h.atkTempo >= intervalo) {
+        h.atkTempo -= intervalo;
+        var alvo = battle.enemies.find(function (e) { return !e.morto; });
+        if (!alvo) break;
+        var habilidade = h.habilidades && h.habilidades[0] ? h.habilidades[0] : null;
+        var mult = habilidade ? (habilidade.multiplicador || 1) : 1;
+        var dano = Math.max(1, Math.round(h.stats.atk * mult));
+        alvo.hp = Math.max(0, alvo.hp - dano);
+        if (alvo.hp <= 0) alvo.morto = true;
+      }
+    });
+
+    // Enemies attack
+    battle.enemies.forEach(function (e) {
+      if (e.morto) return;
+      e.atkTempo += dt;
+      var intervalo = 1 / e.velocidadeAtaque;
+      while (e.atkTempo >= intervalo) {
+        e.atkTempo -= intervalo;
+        var alvo = battle.heroes.find(function (h) { return !h.morto; });
+        if (!alvo) break;
+        var danoE = Math.max(1, e.atk);
+        alvo.stats.hp = Math.max(0, alvo.stats.hp - danoE);
+        if (alvo.stats.hp <= 0) alvo.morto = true;
+      }
+    });
+
+    updateBattleUI();
+
+    var todosMortos = battle.enemies.every(function (e) { return e.morto; });
+    var heroisMortos = battle.heroes.every(function (h) { return h.morto; });
+
+    if (todosMortos && !battle.concluida) {
+      battle.concluida = true;
+      stopBattleTimer();
+      mostrarBanner('WAVE ' + state.progresso.waveAtual + ' CONCLUÍDA!', 'Em breve você avançará para a próxima wave. Por enquanto, reinicie os testes.');
+    } else if (heroisMortos && !battle.derrota) {
+      battle.derrota = true;
+      stopBattleTimer();
+      mostrarBanner('DERROTA!', 'Sua equipe foi derrotada. Reinicie os testes.');
+    }
+  }
+
+  function updateBattleUI() {
+    if (!battle) return;
+    battle.heroes.forEach(function (h) {
+      var pct = Math.max(0, Math.round((h.stats.hp / h.stats.hpMax) * 100));
+      var card = document.querySelector('.hero-card[data-hero-id="' + h.id + '"]');
+      if (card) {
+        var fill = card.querySelector('.hero-bar-fill.hp');
+        var txt = card.querySelector('.hero-bar-text');
+        if (fill) fill.style.width = pct + '%';
+        if (txt) txt.textContent = h.stats.hp + '/' + h.stats.hpMax;
+      }
+      var aUnit = document.querySelector('.arena-unit.hero-unit[data-hero-id="' + h.id + '"]');
+      if (aUnit) {
+        var af = aUnit.querySelector('.arena-unit-bar-fill');
+        if (af) af.style.width = pct + '%';
+      }
+    });
+    battle.enemies.forEach(function (e) {
+      var pct = Math.max(0, Math.round((e.hp / e.hpMax) * 100));
+      var bar = document.querySelector('.enemy-bar-card[data-enemy-id="' + e.id + '"]');
+      if (bar) {
+        var fill = bar.querySelector('.enemy-hp-fill');
+        var txt = bar.querySelector('.enemy-hp-text');
+        if (fill) fill.style.width = pct + '%';
+        if (txt) txt.textContent = e.hp + ' / ' + e.hpMax;
+      }
+      var aUnit = document.querySelector('.arena-unit.enemy-unit[data-enemy-id="' + e.id + '"]');
+      if (aUnit) {
+        var af = aUnit.querySelector('.arena-unit-bar-fill');
+        if (af) af.style.width = pct + '%';
+      }
+    });
+  }
+
+  function mostrarBanner(titulo, texto) {
+    var banner = $('battle-banner');
+    if (!banner) return;
+    banner.innerHTML =
+      '<div class="battle-banner-box">' +
+        '<div class="battle-banner-title">' + titulo + '</div>' +
+        '<div class="battle-banner-text">' + texto + '</div>' +
+        '<button class="btn-gold" id="btn-reset-battle" style="font-size:0.85rem;">🔄 Reiniciar Teste</button>' +
+      '</div>';
+    banner.classList.remove('hidden');
+    var btn = $('btn-reset-battle');
+    if (btn) btn.addEventListener('click', function () { navigate('battle'); });
   }
 
   // ─── PAGE: HEROES ────────────────────────
@@ -426,6 +578,8 @@
   function navigate(page) {
     if (!routes[page]) return;
     currentPage = page;
+
+    if (page !== 'battle') stopBattleTimer();
 
     navBtns.forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.page === page);
