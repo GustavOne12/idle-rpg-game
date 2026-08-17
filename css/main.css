@@ -317,7 +317,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 /* ─── BATTLE PAGE ───────────────────────── */
 .battle-page {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 220px minmax(0, 1fr) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: "left center right";
   gap: 0.5rem;
@@ -348,6 +348,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 .hero-card {
   flex: 1 1 0;
+  width: 220px;
   height: 220px;
   min-height: 0;
   background: var(--bg-card);
@@ -371,15 +372,15 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-avatar {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--radius-sm);
   background: rgba(245,183,49,0.08);
   border: 1px solid var(--border-gold);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -404,7 +405,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-name {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -412,7 +413,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .hero-card-lv {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: var(--accent-gold);
   font-weight: 700;
   flex-shrink: 0;
@@ -523,6 +524,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 .hero-empty {
   flex: 1 1 0;
+  width: 220px;
   height: 220px;
   min-height: 0;
   display: flex;
@@ -596,7 +598,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   padding: 0.75rem;
   position: relative;
   background: radial-gradient(ellipse at center, rgba(99,102,241,0.05) 0%, transparent 70%);
-  min-height: 230px;
+  min-height: 200px;
 }
 
 .arena-side {
@@ -683,11 +685,14 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .battle-wave-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.4rem 0.8rem;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.45rem 0.8rem;
   background: var(--bg-panel);
-  border-top: 1px solid var(--border);
-  font-size: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin: 0.5rem 0.5rem 0;
+  font-size: 0.75rem;
 }
 
 .wave-label {
@@ -1388,8 +1393,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
     overflow-y: hidden;
   }
 
-  .hero-card { min-width: 150px; flex-direction: row; flex-wrap: wrap; }
-  .hero-empty { min-width: 150px; }
+  .hero-card { min-width: 220px; flex-direction: row; flex-wrap: wrap; }
+  .hero-empty { min-width: 220px; }
   .hero-card-avatar { width: 40px; height: 40px; font-size: 1.1rem; }
   .hero-card-skills { width: 100%; }
 
