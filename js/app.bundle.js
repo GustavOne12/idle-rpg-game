@@ -8,14 +8,15 @@
     stats: { hp: 120, hpMax: 120, atk: 45, def: 5, velocidadeAtaque: 0.8, chanceCritica: 15, danoCritico: 150 },
     passiva: {
       id: 'ciclo_lunar', nome: 'Ciclo Lunar',
-      descricao: 'A cada 15s, a fase da lua muda. Na Lua Cheia, sobrecarga com dano extra em área ao redor do alvo.',
-      intervalo: 15, fases: ['Nova', 'Crescente', 'Cheia'],
-      efeito: { tipo: 'sobrecarga', duracao: 5, danoExtraArea: 0.3 },
+      descricao: 'A cada 15s, a fase da lua se alinha por 5s. Durante esse período, os ataques básicos causam 100% de dano no alvo focado e 50% em todos os inimigos ao redor.',
+      intervalo: 15,
+      efeito: { tipo: 'splash', duracao: 5, danoArea: 0.5 },
+      icons: { ativo: 'chars/Luna/Luna passiva - Ativo.jpg', cooldown: 'chars/Luna/Luna passiva - cooldown.jpg' },
     },
     habilidades: [
       { id: 'orbe_de_prata', nome: 'Orbe de Prata', tipo: 'basico', multiplicador: 1.0,
         descricao: 'Esfera rápida de luz lunar no inimigo mais próximo.', alvo: 'inimigo_mais_proximo', area: false },
-      { id: 'eclipse_total', nome: 'Eclipse Total', tipo: 'unica', multiplicador: 1.5,
+      { id: 'eclipse_total', nome: 'Eclipse Total', tipo: 'unica', multiplicador: 1.5, cooldown: 10,
         descricao: 'Chuva de raios estelares causando dano mágico em todos os inimigos.', alvo: 'todos_inimigos', area: true },
     ],
     equipamentos: { arma: null, armadura: null, acessorio: null }, magias: [],
@@ -138,12 +139,12 @@
 
   // ─── PAGE: BATTLE ────────────────────────
   var ENEMY_TEMPLATES = {
-    goblin: { nome: 'Goblin', lv: 1, hpMax: 9999, atk: 1, velocidadeAtaque: 1.0, emoji: '👹' },
-    orc: { nome: 'Orc', lv: 2, hpMax: 90, atk: 1, velocidadeAtaque: 0.8, emoji: '👺' },
-    troll: { nome: 'Troll', lv: 3, hpMax: 140, atk: 1, velocidadeAtaque: 0.6, emoji: '👿' },
+    goblin: { nome: 'Goblin', lv: 1, hpMax: 1000, atk: 0, velocidadeAtaque: 1.0, emoji: '👹' },
+    orc: { nome: 'Orc', lv: 2, hpMax: 90, atk: 0, velocidadeAtaque: 0.8, emoji: '👺' },
+    troll: { nome: 'Troll', lv: 3, hpMax: 140, atk: 0, velocidadeAtaque: 0.6, emoji: '👿' },
   };
 
-  var WAVE_ENEMIES = { 1: ['goblin'] };
+  var WAVE_ENEMIES = { 1: ['goblin', 'goblin', 'goblin'] };
 
   function getWaveEnemies(n) {
     return WAVE_ENEMIES[n] || ['goblin'];
@@ -163,6 +164,9 @@
           velocidadeAtaque: c.stats.velocidadeAtaque, chanceCritica: c.stats.chanceCritica, danoCritico: c.stats.danoCritico
         },
         habilidades: c.habilidades,
+        passiva: c.passiva || null,
+        passivaTempo: (c.passiva && c.passiva.intervalo) || 0,
+        passivaAtiva: false,
         cds: (c.habilidades || []).reduce(function (acc, sk) {
           var total = sk.tipo === 'basico' ? (1 / c.stats.velocidadeAtaque) : (sk.cooldown || 8);
           acc[sk.id] = { total: total, restante: total };
@@ -173,10 +177,10 @@
       };
     });
 
-    var enemies = getWaveEnemies(state.progresso.waveAtual).map(function (key) {
+    var enemies = getWaveEnemies(state.progresso.waveAtual).map(function (key, i) {
       var t = ENEMY_TEMPLATES[key];
       return {
-        id: key, nome: t.nome, lv: t.lv,
+        id: key + '_' + (i + 1), nome: t.nome, lv: t.lv,
         hp: t.hpMax, hpMax: t.hpMax, atk: t.atk, velocidadeAtaque: t.velocidadeAtaque, emoji: t.emoji,
         atkTempo: 0, morto: false,
       };
@@ -210,6 +214,16 @@
         '</div>';
       }
 
+      function passiveSlot(p) {
+        if (!p) return '<div class="hero-passive-slot empty"><span class="hero-passive-icon">—</span></div>';
+        var cool = (p.icons && p.icons.cooldown) ? '<img src="' + p.icons.cooldown + '" alt="' + p.nome + '" />' : '🌑';
+        return '<div class="hero-passive-slot" data-passive-id="' + p.id + '" title="Passiva: ' + p.nome + '">' +
+          '<div class="hero-passive-ring"></div>' +
+          '<span class="hero-passive-icon">' + cool + '</span>' +
+          '<span class="hero-passive-cd-text"></span>' +
+        '</div>';
+      }
+
       var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
 
       return '<div class="hero-card filled" data-hero-id="' + c.id + '">' +
@@ -223,7 +237,7 @@
           '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:100%"></div></div>' +
           '<span class="hero-hp-text">' + c.stats.hpMax + '/' + c.stats.hpMax + '</span>' +
         '</div>' +
-        '<div class="hero-card-skills">' + skillSlot(skills[0], '🔮') + skillSlot(skills[1], '💫') + '</div>' +
+        '<div class="hero-card-skills">' + passiveSlot(c.passiva) + skillSlot(skills[0], '🔮') + skillSlot(skills[1], '💫') + '</div>' +
       '</div>';
     }).join('');
 
@@ -311,10 +325,50 @@
         if (alvo.hp <= 0) alvo.morto = true;
         animarAtaque('hero', h.id);
         if (habilidade && h.cds[habilidade.id]) h.cds[habilidade.id].restante = h.cds[habilidade.id].total;
+        // passive: when active, every basic attack also splashes nearby enemies
+        if (h.passivaAtiva && h.passiva) {
+          var danoArea = Math.max(1, Math.round(h.stats.atk * mult * (h.passiva.efeito.danoArea || 0.5)));
+          battle.enemies.forEach(function (e) {
+            if (e.morto || e.id === alvo.id) return;
+            e.hp = Math.max(0, e.hp - danoArea);
+            if (e.hp <= 0) e.morto = true;
+          });
+        }
+      }
+      // tick down passive timer
+      if (h.passiva) {
+        if (h.passivaAtiva) {
+          h.passivaTempo -= dt;
+          if (h.passivaTempo <= 0) {
+            h.passivaAtiva = false;
+            h.passivaTempo = h.passiva.intervalo || 15;
+          }
+        } else {
+          h.passivaTempo -= dt;
+          if (h.passivaTempo <= 0) {
+            h.passivaTempo = h.passiva.efeito.duracao || 5;
+            h.passivaAtiva = true;
+          }
+        }
       }
       // tick down all skill cooldowns
       Object.keys(h.cds).forEach(function (k) {
         if (h.cds[k].restante > 0) h.cds[k].restante = Math.max(0, h.cds[k].restante - dt);
+      });
+      // auto-cast unique skills when ready
+      (h.habilidades || []).forEach(function (sk) {
+        if (sk.tipo === 'basico') return;
+        var cd = h.cds[sk.id];
+        if (!cd || cd.restante > 0) return;
+        var mult = sk.multiplicador || 1;
+        var dano = Math.max(1, Math.round(h.stats.atk * mult));
+        battle.enemies.forEach(function (e) {
+          if (e.morto) return;
+          e.hp = Math.max(0, e.hp - dano);
+          if (e.hp <= 0) e.morto = true;
+        });
+        animarAtaque('hero', h.id);
+        cd.restante = cd.total;
       });
     });
 
@@ -325,9 +379,10 @@
       var intervalo = 1 / e.velocidadeAtaque;
       while (e.atkTempo >= intervalo) {
         e.atkTempo -= intervalo;
+        if (e.atk <= 0) break;
         var alvo = battle.heroes.find(function (h) { return !h.morto; });
         if (!alvo) break;
-        var danoE = Math.max(1, e.atk);
+        var danoE = e.atk;
         alvo.stats.hp = Math.max(0, alvo.stats.hp - danoE);
         if (alvo.stats.hp <= 0) alvo.morto = true;
         animarAtaque('enemy', e.id);
@@ -392,6 +447,31 @@
             if (cdText) cdText.textContent = '';
           }
         });
+
+        if (h.passiva) {
+          var pSlot = card.querySelector('.hero-passive-slot[data-passive-id="' + h.passiva.id + '"]');
+          if (pSlot) {
+            var pRing = pSlot.querySelector('.hero-passive-ring');
+            var pText = pSlot.querySelector('.hero-passive-cd-text');
+            var pIcon = pSlot.querySelector('.hero-passive-icon');
+            var total = h.passivaAtiva ? (h.passiva.efeito.duracao || 5) : (h.passiva.intervalo || 15);
+            var pPct = Math.max(0, Math.min(100, (h.passivaTempo / total) * 100));
+            if (pRing) pRing.style.setProperty('--cd-pct', pPct);
+            if (h.passivaAtiva) {
+              pSlot.classList.add('ready');
+              pSlot.classList.remove('cd');
+              if (pText) pText.textContent = h.passivaTempo.toFixed(1).replace('.', ',') + 's';
+              if (pIcon) pIcon.innerHTML = h.passiva.icons && h.passiva.icons.ativo
+                ? '<img src="' + h.passiva.icons.ativo + '" alt="' + h.passiva.nome + '" />' : '🌕';
+            } else {
+              pSlot.classList.remove('ready');
+              pSlot.classList.add('cd');
+              if (pText) pText.textContent = h.passivaTempo.toFixed(1).replace('.', ',') + 's';
+              if (pIcon) pIcon.innerHTML = h.passiva.icons && h.passiva.icons.cooldown
+                ? '<img src="' + h.passiva.icons.cooldown + '" alt="' + h.passiva.nome + '" />' : '🌑';
+            }
+          }
+        }
       }
       var aUnit = document.querySelector('.arena-unit.hero-unit[data-hero-id="' + h.id + '"]');
       if (aUnit) {
@@ -449,6 +529,13 @@
       return s || '☆';
     }
 
+    function starsProgress(n) {
+      var filled = Math.max(0, Math.min(n, 5));
+      var s = '';
+      for (var i = 0; i < 5; i++) s += (i < filled ? '★' : '☆');
+      return s;
+    }
+
     function renderTokens() {
       var list = document.getElementById('hero-token-list');
       if (!list) return;
@@ -456,6 +543,8 @@
         var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
         return '<button class="hero-token ' + tierClass(c.tier) + '" data-hero="' + c.id + '" title="' + c.nome + '">' +
           '<div class="hero-token-img">' + (perfilSrc ? '<img src="' + perfilSrc + '" alt="' + c.nome + '" />' : '🌙') + '</div>' +
+          '<div class="hero-token-name">' + c.nome + '</div>' +
+          '<div class="hero-token-lv">LV ' + c.nivel + '</div>' +
           '<div class="hero-token-stars">' + starsHtml(c.estrelas) + '</div>' +
         '</button>';
       }).join('');
@@ -477,15 +566,35 @@
       var hpPct = Math.round((c.stats.hp / c.stats.hpMax) * 100);
       var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
 
+      function multTxt(m) {
+        return 'ATK ×' + (m || 1).toFixed(1).replace('.', ',');
+      }
+
       var skillsHtml = c.habilidades.map(function (h) {
         var typeLabel = h.tipo === 'basico' ? 'Básico' : 'Única';
         var typeClass = h.tipo === 'basico' ? 'badge-blue' : 'badge-red';
-        return '<div class="skill-row"><div class="skill-top"><span class="skill-name">' + h.nome + ' <span class="badge ' + typeClass + '">' + typeLabel + '</span></span><span class="skill-mult">x' + h.multiplicador + '</span></div><div class="skill-desc">' + h.descricao + '</div></div>';
+        var img = SKILL_ICONS[h.id] ? '<img src="' + SKILL_ICONS[h.id] + '" alt="' + h.nome + '" />' : (h.tipo === 'basico' ? '🔮' : '💫');
+        return '<div class="skill-row">' +
+          '<div class="skill-top">' +
+            '<span class="skill-icon-thumb">' + img + '</span>' +
+            '<span class="skill-name">' + h.nome + ' <span class="badge ' + typeClass + '">' + typeLabel + '</span></span>' +
+            '<span class="skill-mult" title="Multiplicador de dano da habilidade">' + multTxt(h.multiplicador) + '</span>' +
+          '</div>' +
+          '<div class="skill-desc">' + h.descricao + '</div>' +
+        '</div>';
       }).join('');
 
       var passivaHtml = '';
       if (c.passiva) {
-        passivaHtml = '<div class="hero-passive"><div class="passive-title">🌕 ' + c.passiva.nome + '</div><div class="passive-desc">' + c.passiva.descricao + '</div></div>';
+        var pImg = (c.passiva.icons && c.passiva.icons.ativo)
+          ? '<img src="' + c.passiva.icons.ativo + '" alt="' + c.passiva.nome + '" />' : '🌙';
+        passivaHtml = '<div class="hero-passive">' +
+          '<div class="hero-passive-head">' +
+            '<span class="hero-passive-thumb">' + pImg + '</span>' +
+            '<span class="hero-passive-name">' + c.passiva.nome + '</span>' +
+          '</div>' +
+          '<div class="passive-desc">' + c.passiva.descricao + '</div>' +
+        '</div>';
       }
 
       panel.innerHTML =
@@ -498,35 +607,56 @@
                 '<span class="hero-detail-lv">LV ' + c.nivel + '</span>' +
               '</div>' +
               '<div class="hero-detail-title">' + c.titulo + '</div>' +
-              '<div class="hero-detail-class">' + c.classe + ' — ' + c.especialidade + ' <span class="badge ' + tierClass(c.tier) + '">' + c.tier + '</span></div>' +
+              '<div class="hero-detail-class">' +
+                '<span class="badge badge-tier ' + tierClass(c.tier) + '">' + c.tier + '</span>' +
+                '<span>·</span><span>' + c.classe + '</span>' +
+                '<span>·</span><span>' + c.especialidade + '</span>' +
+              '</div>' +
+              '<div class="hero-detail-stars" title="Estrelas — melhoram as habilidades">' + starsProgress(c.estrelas) + '</div>' +
             '</div>' +
-            '<button class="btn-evoluir" disabled title="Evoluir (máx. LV 99)">EVOLUIR</button>' +
+            '<div class="btn-evoluir-wrap" title="Missões não concluídas — complete 3 missões para evoluir">' +
+              '<button class="btn-evoluir" disabled>EVOLUIR</button>' +
+            '</div>' +
           '</div>' +
           '<div class="hero-detail-bars">' +
             '<div class="hero-stat-row"><span class="hero-stat-label">❤️ HP</span><span class="hero-stat-val">' + c.stats.hp + ' / ' + c.stats.hpMax + '</span></div>' +
             '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div></div>' +
           '</div>' +
           '<div class="stats-grid">' +
-            '<div class="stat-box"><div class="stat-box-label">ATK</div><div class="stat-box-val">' + c.stats.atk + '</div></div>' +
-            '<div class="stat-box"><div class="stat-box-label">DEF</div><div class="stat-box-val">' + c.stats.def + '%</div></div>' +
-            '<div class="stat-box"><div class="stat-box-label">SPD</div><div class="stat-box-val">' + c.stats.velocidadeAtaque + '</div></div>' +
-            '<div class="stat-box"><div class="stat-box-label">CRT</div><div class="stat-box-val">' + c.stats.chanceCritica + '%</div></div>' +
-            '<div class="stat-box"><div class="stat-box-label">DMG CRT</div><div class="stat-box-val">' + c.stats.danoCritico + '%</div></div>' +
-            '<div class="stat-box"><div class="stat-box-label">ESTRELA</div><div class="stat-box-val">' + starsHtml(c.estrelas) + '</div></div>' +
+            '<div class="stat-box" title="Poder de ataque"><div class="stat-box-label">ATK</div><div class="stat-box-val">' + c.stats.atk + '</div></div>' +
+            '<div class="stat-box" title="Redução de dano: ' + c.stats.def + '%"><div class="stat-box-label">DEF</div><div class="stat-box-val">' + c.stats.def + '%</div></div>' +
+            '<div class="stat-box" title="Velocidade de ataque"><div class="stat-box-label">SPD</div><div class="stat-box-val">' + c.stats.velocidadeAtaque + '</div></div>' +
+            '<div class="stat-box" title="Chance de acerto crítico"><div class="stat-box-label">CRT</div><div class="stat-box-val">' + c.stats.chanceCritica + '%</div></div>' +
+            '<div class="stat-box" title="Dano de acerto crítico"><div class="stat-box-label">DMG CRT</div><div class="stat-box-val">' + c.stats.danoCritico + '%</div></div>' +
+            '<div class="stat-box" title="Estrelas — melhoram as habilidades"><div class="stat-box-label">ESTRELAS</div><div class="stat-box-val star-progress">' + starsProgress(c.estrelas) + '</div></div>' +
           '</div>' +
-          '<div class="hero-skills"><div class="hero-skills-title">🔮 Habilidades</div>' + skillsHtml + '</div>' +
-          passivaHtml +
+          '<div class="hero-skills">' +
+            '<div class="hero-skills-title">🌙 Passiva</div>' + passivaHtml +
+            '<div class="hero-skills-title skills-sep">🔮 Habilidades</div>' + skillsHtml +
+          '</div>' +
           '<div class="hero-equip">' +
             '<div class="hero-skills-title">⚔️ Equipamento</div>' +
             '<div class="equip-grid">' +
               '<div class="equip-slots">' +
-                '<div class="equip-slot" title="Slot de equipamento"><div class="equip-slot-icon">—</div></div>' +
-                '<div class="equip-slot" title="Slot de equipamento"><div class="equip-slot-icon">—</div></div>' +
+                '<button class="equip-slot" data-slot-type="Arma" title="Slot de equipamento"><div class="equip-slot-icon">🗡️</div></button>' +
+                '<button class="equip-slot" data-slot-type="Armadura" title="Slot de equipamento"><div class="equip-slot-icon">🛡️</div></button>' +
               '</div>' +
-              '<div class="equip-stats-preview"><span class="equip-stats-empty">Nenhum item equipado</span></div>' +
+              '<div class="equip-stats-preview" id="equip-preview"><span class="equip-stats-empty">Nenhum item equipado</span></div>' +
             '</div>' +
           '</div>' +
         '</div>';
+
+      panel.querySelectorAll('.equip-slot').forEach(function (slot) {
+        slot.addEventListener('click', function () {
+          var preview = panel.querySelector('#equip-preview');
+          if (!preview) return;
+          preview.innerHTML = '<div class="equip-slot-info">' +
+            '<div class="equip-slot-info-title">Slot de ' + slot.dataset.slotType + '</div>' +
+            '<div class="equip-slot-info-text">Nenhum item equipado</div>' +
+            '<button class="btn-secondary equip-btn" disabled style="font-size:0.75rem;">EQUIPAR</button>' +
+          '</div>';
+        });
+      });
     }
 
     content.innerHTML =
@@ -630,10 +760,308 @@
     });
   }
 
+  // ─── PAGE: TUTORIAL ─────────────────────
+  function renderTutorial() {
+    var sections = [
+      {
+        id: 'como-jogar', titulo: 'COMO JOGAR', icono: '⚔️',
+        html: function () {
+          return '' +
+            '<p class="tut-text">Monte sua equipe com até 3 personagens e inicie uma run. O combate acontece automaticamente. Sobreviva a 4 waves para enfrentar um Boss. Derrote o Boss para avançar para o próximo ciclo e aumentar a dificuldade.</p>' +
+            '<div class="tut-flow">' +
+              tutFlow(['MONTAR EQUIPE', 'INICIAR RUN', '4 WAVES', 'BOSS', 'RECOMPENSAS', 'DIFICULDADE AUMENTA', 'NOVO CICLO', 'CONTINUE ATÉ PERDER']) +
+            '</div>' +
+            '<p class="tut-text">Quando todos os personagens da equipe forem derrotados, a run termina.</p>';
+        }
+      },
+      {
+        id: 'equipe', titulo: 'EQUIPE', icono: '👥',
+        html: function () {
+          return '' +
+            '<p class="tut-text">Você pode utilizar até 3 personagens na sua equipe.</p>' +
+            '<p class="tut-text">Você começa o jogo com apenas 1 personagem e os outros personagens são desbloqueados conforme sua progressão.</p>' +
+            '<p class="tut-text">Os três espaços da equipe estão disponíveis desde o início. Você decide quais personagens deseja utilizar e não é obrigado a preencher todos os espaços.</p>' +
+            '<h3 class="tut-subtitle">FUNÇÕES DOS PERSONAGENS</h3>' +
+            '<div class="tut-grid">' +
+              tutCard('🛡️', 'TANK', 'Especialista em resistência e proteção.') +
+              tutCard('🔮', 'MAGO', 'Especialista em dano mágico e ataques que podem atingir vários inimigos.') +
+              tutCard('🗡️', 'ASSASSINO', 'Especialista em dano elevado e finalização de inimigos enfraquecidos.') +
+              tutCard('✨', 'SUPORTE', 'Especialista em buffs e efeitos que fortalecem a equipe.') +
+              tutCard('💚', 'CLÉRIGO', 'Especialista em cura e sustentação da equipe.') +
+            '</div>';
+        }
+      },
+      {
+        id: 'combate', titulo: 'COMBATE', icono: '⚔️',
+        html: function () {
+          return '' +
+            '<p class="tut-text">O combate é automático. Depois de iniciar uma run, seus personagens lutam sem que seja necessário controlar cada ataque manualmente.</p>' +
+            '<h3 class="tut-subtitle">ATAQUE BÁSICO</h3>' +
+            '<p class="tut-text">Cada personagem possui um ataque básico que é executado automaticamente durante o combate.</p>' +
+            '<h3 class="tut-subtitle">HABILIDADE ESPECIAL</h3>' +
+            '<p class="tut-text">Cada personagem possui uma habilidade especial. Ela possui um tempo de recarga maior que o ataque básico e é utilizada automaticamente quando estiver disponível.</p>' +
+            '<h3 class="tut-subtitle">PASSIVA</h3>' +
+            '<p class="tut-text">Cada personagem possui uma habilidade passiva. Ela permanece ativa durante o combate ou é ativada quando sua condição é atendida.</p>' +
+            '<h3 class="tut-subtitle">ALVOS</h3>' +
+            '<p class="tut-text">Os ataques normalmente selecionam um alvo automaticamente. Algumas habilidades possuem regras próprias para escolher seus alvos.</p>' +
+            '<h3 class="tut-subtitle">COOLDOWN</h3>' +
+            '<p class="tut-text">Quando uma habilidade está em recarga, um temporizador mostra quanto tempo falta para ela ficar disponível novamente.</p>';
+        }
+      },
+      {
+        id: 'personagens', titulo: 'PERSONAGENS', icono: '🛡️',
+        html: function () {
+          return '' +
+            '<p class="tut-text">Cada personagem possui seus próprios atributos, habilidades, equipamentos e progressão.</p>' +
+            '<ul class="tut-list">' +
+              tutItem('Nível') + tutItem('Estrelas') + tutItem('Tier') + tutItem('Status') +
+              tutItem('Habilidades') + tutItem('Equipamentos') +
+            '</ul>' +
+            '<p class="tut-text">Personagens possuem diferentes funções e habilidades. A escolha da equipe influencia a estratégia utilizada durante a run.</p>';
+        }
+      },
+      {
+        id: 'nivel-estrelas', titulo: 'NÍVEL E ESTRELAS', icono: '⭐',
+        html: function () {
+          return '' +
+            '<div class="tut-intro-box">' +
+              '<div class="tut-intro-title">NÍVEL × ESTRELAS × TIER</div>' +
+              '<div class="tut-intro-row"><span class="tut-intro-key">NÍVEL</span><span class="tut-intro-arrow">→</span><span class="tut-intro-val">evolução dos atributos</span></div>' +
+              '<div class="tut-intro-row"><span class="tut-intro-key">ESTRELAS</span><span class="tut-intro-arrow">→</span><span class="tut-intro-val">evolução das habilidades</span></div>' +
+              '<div class="tut-intro-row"><span class="tut-intro-key">TIER</span><span class="tut-intro-arrow">→</span><span class="tut-intro-val">multiplicador geral de poder</span></div>' +
+            '</div>' +
+            '<p class="tut-text">Todo personagem possui três formas principais de progressão: Nível, Estrelas e Tier.</p>' +
+            '<p class="tut-text">Cada uma possui uma função diferente.</p>' +
+            '<h3 class="tut-subtitle">NÍVEL — EVOLUÇÃO DOS ATRIBUTOS</h3>' +
+            '<p class="tut-text">O nível representa a evolução do personagem. Cada personagem pode chegar até o nível 100.</p>' +
+            '<p class="tut-text">O nível aumenta os atributos do personagem, como HP, ATK, DEF e outros status.</p>' +
+            '<div class="tut-compare">' +
+              '<div class="tut-compare-box"><div class="tut-compare-name">LUNA — NÍVEL 1</div><div class="tut-compare-stat">ATK: 10</div></div>' +
+              '<div class="tut-compare-arrow">↓</div>' +
+              '<div class="tut-compare-box"><div class="tut-compare-name">LUNA — NÍVEL 40</div><div class="tut-compare-stat">ATK: 18</div></div>' +
+            '</div>' +
+            '<p class="tut-text">Neste exemplo, o aumento do nível aumentou o ATK do personagem.</p>' +
+            '<h3 class="tut-subtitle">ESTRELAS — EVOLUÇÃO DAS HABILIDADES</h3>' +
+            '<p class="tut-text">As estrelas estão diretamente ligadas ao nível do personagem.</p>' +
+            '<p class="tut-text">A cada 20 níveis, o personagem recebe uma nova estrela.</p>' +
+            '<div class="tut-stars-list">' +
+              tutStars('NÍVEL 1', 1) +
+              tutStars('NÍVEL 20', 2) +
+              tutStars('NÍVEL 40', 3) +
+              tutStars('NÍVEL 60', 4) +
+              tutStars('NÍVEL 80', 5) +
+              tutStars('NÍVEL 100', 6) +
+            '</div>' +
+            '<p class="tut-text">Cada nova estrela representa um upgrade nas habilidades do personagem.</p>' +
+            '<div class="tut-compare">' +
+              '<div class="tut-compare-box"><div class="tut-compare-name">BOLA DE FOGO — ★1</div><div class="tut-compare-stat">10 ATK × 1,70 = 17 de dano</div></div>' +
+              '<div class="tut-compare-arrow">↓</div>' +
+              '<div class="tut-compare-box"><div class="tut-compare-name">BOLA DE FOGO — ★2</div><div class="tut-compare-stat">10 ATK × 1,85 = 18,5 de dano</div></div>' +
+            '</div>' +
+            '<p class="tut-text">Neste exemplo, o ATK continua sendo 10. O que mudou foi o multiplicador da habilidade.</p>' +
+            '<div class="tut-note-box">' +
+              '<div class="tut-note-line"><span class="tut-note-key">Nível maior:</span> 12 ATK × 1,70</div>' +
+              '<div class="tut-note-line"><span class="tut-note-key">Estrela maior:</span> 10 ATK × 1,85</div>' +
+            '</div>' +
+            '<p class="tut-text">Nível aumenta os atributos.</p>' +
+            '<p class="tut-text">Estrela aumenta os multiplicadores das habilidades.</p>' +
+            '<h3 class="tut-subtitle">DIFERENÇA ENTRE OS TRÊS</h3>' +
+            '<div class="tut-table">' +
+              '<div class="tut-table-row head">' +
+                '<span class="tut-table-c1">SISTEMA</span>' +
+                '<span class="tut-table-c2">O QUE REPRESENTA</span>' +
+                '<span class="tut-table-c3">COMO EVOLUI</span>' +
+              '</div>' +
+              '<div class="tut-table-row">' +
+                '<span class="tut-table-c1">NÍVEL</span>' +
+                '<span class="tut-table-c2">Evolução do personagem</span>' +
+                '<span class="tut-table-c3">XP até o nível 100</span>' +
+              '</div>' +
+              '<div class="tut-table-row">' +
+                '<span class="tut-table-c1">ESTRELAS</span>' +
+                '<span class="tut-table-c2">Poder das habilidades</span>' +
+                '<span class="tut-table-c3">A cada 20 níveis</span>' +
+              '</div>' +
+              '<div class="tut-table-row">' +
+                '<span class="tut-table-c1">TIER</span>' +
+                '<span class="tut-table-c2">Raridade/patamar de poder</span>' +
+                '<span class="tut-table-c3">Quests + Gold</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="tut-summary">' +
+              '<div class="tut-summary-line"><span class="tut-summary-key">NÍVEL</span><span class="tut-summary-arrow">→</span><span>aumenta os atributos.</span></div>' +
+              '<div class="tut-summary-line"><span class="tut-summary-key">ESTRELAS</span><span class="tut-summary-arrow">→</span><span>aumentam os multiplicadores das habilidades.</span></div>' +
+              '<div class="tut-summary-line"><span class="tut-summary-key">TIER</span><span class="tut-summary-arrow">→</span><span>aumenta os multiplicadores gerais dos atributos.</span></div>' +
+            '</div>' +
+            '<p class="tut-text">Esses sistemas funcionam juntos, mas não são a mesma coisa.</p>' +
+            '<p class="tut-text">Luna pode estar no nível 100, possuir 6 estrelas e ainda ser Comum.</p>' +
+            '<p class="tut-text">Ela pode então cumprir as missões de evolução e se tornar Rara sem precisar resetar seu nível ou suas estrelas.</p>' +
+            '<div class="tut-compare">' +
+              '<div class="tut-compare-box">' +
+                '<div class="tut-compare-name">LUNA</div>' +
+                '<div class="tut-compare-stat">Nível 100</div>' +
+                '<div class="tut-compare-stat">★★★★★★</div>' +
+                '<div class="tut-compare-stat">Comum</div>' +
+              '</div>' +
+              '<div class="tut-compare-arrow">↓</div>' +
+              '<div class="tut-compare-mid">MISSÕES + GOLD</div>' +
+              '<div class="tut-compare-arrow">↓</div>' +
+              '<div class="tut-compare-box">' +
+                '<div class="tut-compare-name">LUNA</div>' +
+                '<div class="tut-compare-stat">Nível 100</div>' +
+                '<div class="tut-compare-stat">★★★★★★</div>' +
+                '<div class="tut-compare-stat">Rara</div>' +
+              '</div>' +
+            '</div>' +
+            '<p class="tut-text">O nível e as estrelas permanecem. Apenas o Tier muda.</p>';
+        }
+      },
+      {
+        id: 'tier', titulo: 'TIER', icono: '💎',
+        html: function () {
+          return '' +
+            '<h3 class="tut-subtitle">TIER — RARIDADE E MULTIPLICADOR DE PODER</h3>' +
+            '<p class="tut-text">O Tier representa a raridade e o patamar de poder do personagem.</p>' +
+            '<div class="tut-flow">' +
+              tutFlow(['COMUM', 'RARO', 'ULTRA-RARO', 'LENDÁRIO', 'MÍTICO']) +
+            '</div>' +
+            '<p class="tut-text">O Tier possui influência sobre os atributos do personagem através de multiplicadores.</p>' +
+            '<div class="tut-example">' +
+              '<div class="tut-example-title">LUNA — NÍVEL 40</div>' +
+              '<div class="tut-mult-line"><span class="tut-mult-name">COMUM</span><span class="tut-mult-val">ATK base × 1,00</span></div>' +
+              '<div class="tut-mult-line"><span class="tut-mult-name">RARO</span><span class="tut-mult-val">ATK base × 1,15</span></div>' +
+              '<div class="tut-mult-line"><span class="tut-mult-name">ULTRA-RARO</span><span class="tut-mult-val">ATK base × 1,35</span></div>' +
+              '<div class="tut-mult-line"><span class="tut-mult-name">LENDÁRIO</span><span class="tut-mult-val">ATK base × 1,60</span></div>' +
+              '<div class="tut-mult-line"><span class="tut-mult-name">MÍTICO</span><span class="tut-mult-val">ATK base × 2,00</span></div>' +
+            '</div>' +
+            '<p class="tut-text">Um personagem de Tier maior possui multiplicadores de atributos maiores.</p>' +
+            '<h3 class="tut-subtitle">EVOLUÇÃO DE TIER</h3>' +
+            '<p class="tut-text">Cada personagem possui sua própria sequência de missões para evoluir para o próximo Tier.</p>' +
+            '<p class="tut-text">Para evoluir um personagem, primeiro é necessário completar todas as missões de evolução daquele personagem. Depois de cumprir os requisitos, é necessário pagar o custo em Gold para concluir a evolução.</p>' +
+            '<div class="tut-flow">' +
+              tutFlow(['COMUM', 'RARO', 'ULTRA-RARO', 'LENDÁRIO', 'MÍTICO']) +
+            '</div>' +
+            '<div class="tut-example">' +
+              '<div class="tut-example-title">LUNA — COMUM → RARO</div>' +
+              '<div class="tut-example-line done">✓ Com Luna na equipe, elimine 500 Goblins</div>' +
+              '<div class="tut-example-line done">✓ Com Luna na equipe, execute 1.500 habilidades</div>' +
+              '<div class="tut-example-line">○ Com Luna na equipe, elimine 50 Bosses</div>' +
+            '</div>' +
+            '<div class="tut-compare">' +
+              '<div class="tut-compare-mid">TODAS AS MISSÕES CONCLUÍDAS</div>' +
+              '<div class="tut-compare-arrow">↓</div>' +
+              '<div class="tut-compare-mid">PAGAR GOLD</div>' +
+              '<div class="tut-compare-arrow">↓</div>' +
+              '<div class="tut-compare-box"><div class="tut-compare-name">LUNA — RARO</div></div>' +
+            '</div>' +
+            '<p class="tut-text">As missões são específicas de cada personagem. Para contar o progresso, o personagem precisa estar na equipe quando a ação correspondente acontecer.</p>';
+        }
+      },
+      {
+        id: 'equipamentos', titulo: 'EQUIPAMENTOS', icono: '🗡️',
+        html: function () {
+          return '' +
+            '<p class="tut-text">Cada personagem pode equipar dois itens: uma arma e uma armadura.</p>' +
+            '<div class="tut-equip">' +
+              '<span class="tut-equip-chip">ARMA</span>' +
+              '<span class="tut-equip-chip">ARMADURA</span>' +
+            '</div>' +
+            '<p class="tut-text">Cada personagem possui seu próprio conjunto de equipamentos.</p>' +
+            '<p class="tut-text">Os equipamentos são obtidos durante a gameplay, principalmente através dos Bosses.</p>' +
+            '<h3 class="tut-subtitle">ESTILOS DE BUILD</h3>' +
+            '<div class="tut-grid">' +
+              tutCard('⚔️', 'DANO', 'Focado em aumentar o poder dos ataques.') +
+              tutCard('💨', 'VELOCIDADE', 'Focado em aumentar a frequência dos ataques.') +
+              tutCard('🎯', 'MULTI-ALVO', 'Focado em atingir mais inimigos.') +
+            '</div>' +
+            '<p class="tut-text">Você pode combinar a arma e a armadura de diferentes builds para criar sua própria configuração.</p>';
+        }
+      },
+      {
+        id: 'recursos', titulo: 'RECURSOS', icono: '🪙',
+        html: function () {
+          return '' +
+            '<p class="tut-text">Gold é obtido durante as waves e pode ser utilizado para diferentes formas de progressão.</p>' +
+            '<p class="tut-text">Quanto mais longe você chegar na run, maiores serão as recompensas obtidas dos inimigos.</p>' +
+            '<h3 class="tut-subtitle">GOLD</h3>' +
+            '<p class="tut-text">Gold é a principal moeda utilizada para progressão.</p>' +
+            '<p class="tut-text">Gold pode ser utilizado para evoluir o Tier dos personagens e realizar outras ações de progressão.</p>';
+        }
+      }
+    ];
+
+    function tutFlow(steps) {
+      return '<div class="tut-flow-steps">' + steps.map(function (s) {
+        return '<div class="tut-flow-step">' + s + '</div>';
+      }).join('<div class="tut-flow-arrow">↓</div>') + '</div>';
+    }
+
+    function tutCard(icon, titulo, desc) {
+      return '<div class="tut-card">' +
+        '<div class="tut-card-icon">' + icon + '</div>' +
+        '<div class="tut-card-body">' +
+          '<div class="tut-card-title">' + titulo + '</div>' +
+          '<div class="tut-card-desc">' + desc + '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function tutItem(txt) {
+      return '<li class="tut-list-item">' + txt + '</li>';
+    }
+
+    function tutStars(lvl, n) {
+      var s = '';
+      for (var i = 0; i < n; i++) s += '★';
+      return '<div class="tut-stars-row">' +
+        '<span class="tut-stars-lvl">' + lvl + '</span>' +
+        '<span class="tut-stars-val">' + s + '</span>' +
+      '</div>';
+    }
+
+    var menuHtml = sections.map(function (s, i) {
+      return '<button class="tut-menu-btn' + (i === 0 ? ' active' : '') + '" data-tut="' + s.id + '">' +
+        '<span class="tut-menu-icon">' + s.icono + '</span>' +
+        '<span class="tut-menu-label">' + s.titulo + '</span>' +
+      '</button>';
+    }).join('');
+
+    content.innerHTML =
+      '<div class="tutorial-page">' +
+        '<h2 class="tutorial-title">📖 TUTORIAL</h2>' +
+        '<div class="tutorial-layout">' +
+          '<div class="tutorial-menu" id="tutorial-menu">' + menuHtml + '</div>' +
+          '<div class="tutorial-content" id="tutorial-content"></div>' +
+        '</div>' +
+      '</div>';
+
+    function showSection(id) {
+      var sec = sections.find(function (s) { return s.id === id; });
+      var panel = $('tutorial-content');
+      if (!sec || !panel) return;
+      panel.innerHTML =
+        '<div class="tut-section-head">' +
+          '<span class="tut-section-icon">' + sec.icono + '</span>' +
+          '<h3 class="tut-section-title">' + sec.titulo + '</h3>' +
+        '</div>' +
+        sec.html();
+      document.querySelectorAll('#tutorial-menu .tut-menu-btn').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.tut === id);
+      });
+    }
+
+    document.querySelectorAll('#tutorial-menu .tut-menu-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { showSection(btn.dataset.tut); });
+    });
+
+    showSection(sections[0].id);
+  }
+
   // ─── ROUTER ──────────────────────────────
   var routes = {
     hub: renderHub, battle: renderBattle, heroes: renderHeroes,
     inventory: renderInventory, shop: renderShop, save: renderSave,
+    tutorial: renderTutorial,
   };
 
   var currentPage = 'hub';

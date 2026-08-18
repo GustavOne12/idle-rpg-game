@@ -21,13 +21,16 @@ export const LUNA = {
   passiva: {
     id: 'ciclo_lunar',
     nome: 'Ciclo Lunar',
-    descricao: 'A cada 15 segundos em combate, a fase da lua muda. Ao atingir Lua Cheia, dano entra em sobrecarga com dano extra em área ao redor do alvo.',
+    descricao: 'A cada 15 segundos em combate, a fase da lua se alinha por 5 segundos. Durante esse período, os ataques básicos causam 100% de dano no alvo focado e 50% de dano em todos os inimigos ao redor.',
     intervalo: 15,
-    fases: ['Nova', 'Crescente', 'Cheia'],
     efeito: {
-      tipo: 'sobrecarga',
+      tipo: 'splash',
       duracao: 5,
-      danoExtraArea: 0.3,
+      danoArea: 0.5,
+    },
+    icons: {
+      ativo: 'chars/Luna/Luna passiva - Ativo.jpg',
+      cooldown: 'chars/Luna/Luna passiva - cooldown.jpg',
     },
   },
 
@@ -46,6 +49,7 @@ export const LUNA = {
       nome: 'Eclipse Total',
       tipo: 'unica',
       multiplicador: 1.5,
+      cooldown: 10,
       descricao: 'O campo escurece e ela invoca uma chuva de raios estelares, causando dano mágico massivo em todos os inimigos.',
       alvo: 'todos_inimigos',
       area: true,
