@@ -3,29 +3,48 @@
 
   // ─── LUNA DATA ───────────────────────────
   var LUNA = {
-    id: 'luna_01', nome: 'Luna', titulo: 'Tecelã da Noite',
+    id: 'char_001', nome: 'Luna', titulo: 'A Tecelã da Noite',
     classe: 'Maga', especialidade: 'Dano em Área', tier: 'Comum', nivel: 1, estrelas: 1,
     xpAtual: 0, fatorDificuldade: 1.45,
-    stats: { hp: 120, hpMax: 120, atk: 45, def: 5, velocidadeAtaque: 0.8, chanceCritica: 15, danoCritico: 150 },
-    crescimento: { hp: 8, hpMax: 8, atk: 3, def: 0.2, velocidadeAtaque: 0, chanceCritica: 0.2, danoCritico: 1 },
+    // Atributos base no nível 1.
+    stats: { hp: 45, hpMax: 45, atk: 15, def: 3, velocidadeAtaque: 1.5, chanceCritica: 15, danoCritico: 150 },
+    // Crescimento por nível (Base + ((Nível - 1) * Crescimento)). Campos fixos usam 0.
+    crescimento: { hp: 6, hpMax: 6, atk: 3, def: 0, velocidadeAtaque: 0, chanceCritica: 0, danoCritico: 0 },
     passiva: {
       id: 'ciclo_lunar', nome: 'Ciclo Lunar',
-      descricao: 'A cada 15s, a fase da lua se alinha por 5s. Durante esse período, os ataques básicos causam 100% de dano no alvo focado e 50% em todos os inimigos ao redor.',
+      descricao: 'A cada 15s, a fase da lua se alinha. Durante o período ativo, ataques básicos causam 100% de dano no alvo e uma porcentagem em todos os inimigos ao redor.',
       intervalo: 15,
-      efeito: { tipo: 'splash', duracao: 5, danoArea: 0.5 },
+      // Progressão por estrela (índice 1-5 + Despertar = 6): duração ativa e dano em área.
+      efeitos: [
+        null,
+        { duracao: 7, danoArea: 0.30 },
+        { duracao: 8, danoArea: 0.38 },
+        { duracao: 9, danoArea: 0.46 },
+        { duracao: 10, danoArea: 0.54 },
+        { duracao: 11, danoArea: 0.62 },
+        { duracao: 13, danoArea: 0.70 },
+      ],
       icons: { ativo: 'chars/Luna/Luna passiva - Ativo.jpg', cooldown: 'chars/Luna/Luna passiva - cooldown.jpg' },
     },
     habilidades: [
-      { id: 'orbe_de_prata', nome: 'Orbe de Prata', tipo: 'basico', multiplicador: 1.0,
-        descricao: 'Esfera rápida de luz lunar no inimigo mais próximo.', alvo: 'inimigo_mais_proximo', area: false },
-      { id: 'eclipse_total', nome: 'Eclipse Total', tipo: 'unica', multiplicador: 1.5, cooldown: 10,
-        descricao: 'Chuva de raios estelares causando dano mágico em todos os inimigos.', alvo: 'todos_inimigos', area: true },
+      {
+        id: 'orbe_de_prata', nome: 'Orbe de Prata', tipo: 'basico',
+        descricao: 'Esfera rápida de luz lunar no inimigo mais próximo.', alvo: 'inimigo_mais_proximo', area: false,
+        // Multiplicador de dano baseado no ATK (índice 1-5 + Despertar = 6).
+        multiplicadores: [null, 1.0, 1.15, 1.35, 1.55, 1.75, 2.0],
+      },
+      {
+        id: 'eclipse_total', nome: 'Eclipse Total', tipo: 'unica', cooldown: 10,
+        descricao: 'Chuva de raios estelares causando dano mágico em todos os inimigos.', alvo: 'todos_inimigos', area: true,
+        // Multiplicador de dano baseado no ATK (índice 1-5 + Despertar = 6).
+        multiplicadores: [null, 1.5, 1.8, 2.2, 2.6, 3.0, 3.5],
+      },
     ],
     equipamentos: { arma: null, armadura: null, acessorio: null }, magias: [],
     images: { perfil: 'chars/Luna/Perfil - LUNA.png', combat: 'chars/Luna/Combat - Luna.png' },
   };
 
-  var CHARACTER_TEMPLATES = { luna_01: LUNA };
+  var CHARACTER_TEMPLATES = { char_001: LUNA };
 
   var SKILL_ICONS = {
     orbe_de_prata: 'chars/Luna/Ataque básico - Luna.jpg',
@@ -36,11 +55,10 @@
   var EXP_BASE = 100;
   var NIVEL_MAXIMO = 100;
   var EXP_FATOR_PADRAO = 1.45;
+  var ESTRELA_DESPERTA = 6;
 
   var TIER_ORDEM = ['Comum', 'Raro', 'Ultra-Raro', 'Lendário', 'Mítico'];
   var TIER_MULT = { 'Comum': 1.0, 'Raro': 1.15, 'Ultra-Raro': 1.35, 'Lendário': 1.60, 'Mítico': 2.0 };
-  // Multiplicador de habilidades por estrela (valores provisórios; a listagem da Luna virá depois)
-  var STAR_MULT = { 1: 1.0, 2: 1.15, 3: 1.30, 4: 1.45, 5: 1.60 };
 
   var ITEM_DROPS = [
     { id: 'lanca_prata', nome: 'Lança de Prata', tipo: 'arma', icone: '🗡️', bonus: { atk: 5 } },
@@ -58,11 +76,32 @@
     return pct;
   }
 
+  // Lê o multiplicador de dano de uma habilidade conforme o nível de estrelas (1-5 + Despertar = 6).
+  function multiplicadorHabilidade(h, estrelas) {
+    if (!h) return 1;
+    var arr = h.multiplicadores;
+    if (Array.isArray(arr)) {
+      var v = arr[estrelas];
+      if (typeof v === 'number' && v > 0) return v;
+      return arr[1] || 1;
+    }
+    return h.multiplicador || 1;
+  }
+
+  // Lê a duração e o dano em área da passiva conforme o nível de estrelas.
+  function efeitoPassiva(p, estrelas) {
+    if (!p || !Array.isArray(p.efeitos)) return p ? (p.efeito || null) : null;
+    var e = p.efeitos[estrelas];
+    if (e) return e;
+    return p.efeitos[1] || null;
+  }
+
   function calcularAtributos(c) {
     var lv = c.nivel || 1;
     var tm = TIER_MULT[c.tier] || 1;
-    var sm = STAR_MULT[c.estrelas] || 1;
+    var estrelas = c.estrelas || 1;
     var stats = {};
+    // Atributos = Base + ((Nível - 1) * Crescimento), depois aplica o multiplicador do Tier.
     Object.keys(c.stats).forEach(function (k) {
       var base = c.stats[k];
       var cres = (c.crescimento && c.crescimento[k]) || 0;
@@ -70,9 +109,9 @@
       stats[k] = k === 'velocidadeAtaque' ? Math.round(v * 100) / 100 : Math.round(v);
     });
     var habilidades = (c.habilidades || []).map(function (h) {
-      return Object.assign({}, h, { multiplicadorEfetivo: Math.round((h.multiplicador * sm) * 100) / 100 });
+      return Object.assign({}, h, { multiplicadorEfetivo: multiplicadorHabilidade(h, estrelas) });
     });
-    return { stats: stats, habilidades: habilidades, tierMult: tm, starMult: sm };
+    return { stats: stats, habilidades: habilidades, tierMult: tm, estrelas: estrelas };
   }
 
   // ─── STATE ───────────────────────────────
@@ -120,6 +159,12 @@
 
   function migrateCharacters() {
     var changed = false;
+    // Migração antiga: luna_01 -> char_001 (padrão de ID atual).
+    state.personagens.forEach(function (p) {
+      if (p.id === 'luna_01') { p.id = 'char_001'; changed = true; }
+    });
+    state.equipe = (state.equipe || []).map(function (id) { return id === 'luna_01' ? 'char_001' : id; });
+
     state.personagens.forEach(function (p) {
       var template = CHARACTER_TEMPLATES[p.id];
       if (template) {
@@ -132,6 +177,18 @@
         if (p.xpAtual === undefined && template.xpAtual !== undefined) { p.xpAtual = template.xpAtual; changed = true; }
         if (p.fatorDificuldade === undefined && template.fatorDificuldade !== undefined) { p.fatorDificuldade = template.fatorDificuldade; changed = true; }
         if (!p.crescimento && template.crescimento) { p.crescimento = template.crescimento; changed = true; }
+        if (!p.passiva && template.passiva) { p.passiva = template.passiva; changed = true; }
+        if (p.passiva && template.passiva && Array.isArray(template.passiva.efeitos) && !Array.isArray(p.passiva.efeitos)) {
+          p.passiva.efeitos = template.passiva.efeitos; changed = true;
+        }
+        if (p.habilidades && template.habilidades) {
+          template.habilidades.forEach(function (th) {
+            var ph = p.habilidades.find(function (h) { return h.id === th.id; });
+            if (ph && Array.isArray(th.multiplicadores) && !Array.isArray(ph.multiplicadores)) {
+              ph.multiplicadores = th.multiplicadores; changed = true;
+            }
+          });
+        }
       }
     });
     if (state.inventario === undefined) { state.inventario = []; changed = true; }
@@ -243,6 +300,7 @@
         },
         habilidades: calc.habilidades,
         passiva: c.passiva || null,
+        passivaEfeito: efeitoPassiva(c.passiva, c.estrelas),
         passivaTempo: (c.passiva && c.passiva.intervalo) || 0,
         passivaAtiva: false,
         cds: (calc.habilidades || []).reduce(function (acc, sk) {
@@ -409,15 +467,15 @@
         var alvo = battle.enemies.find(function (e) { return !e.morto; });
         if (!alvo) break;
         var habilidade = h.habilidades && h.habilidades[0] ? h.habilidades[0] : null;
-        var mult = habilidade ? (habilidade.multiplicador || 1) : 1;
+        var mult = habilidade ? (habilidade.multiplicadorEfetivo || habilidade.multiplicador || 1) : 1;
         var dano = Math.max(1, Math.round(h.stats.atk * mult));
         alvo.hp = Math.max(0, alvo.hp - dano);
         if (alvo.hp <= 0) matarInimigo(alvo);
         animarAtaque('hero', h.id);
         if (habilidade && h.cds[habilidade.id]) h.cds[habilidade.id].restante = h.cds[habilidade.id].total;
         // passive: when active, every basic attack also splashes nearby enemies
-        if (h.passivaAtiva && h.passiva) {
-          var danoArea = Math.max(1, Math.round(h.stats.atk * mult * (h.passiva.efeito.danoArea || 0.5)));
+        if (h.passivaAtiva && h.passiva && h.passivaEfeito) {
+          var danoArea = Math.max(1, Math.round(h.stats.atk * mult * (h.passivaEfeito.danoArea || 0.3)));
           battle.enemies.forEach(function (e) {
             if (e.morto || e.id === alvo.id) return;
             e.hp = Math.max(0, e.hp - danoArea);
@@ -436,7 +494,7 @@
         } else {
           h.passivaTempo -= dt;
           if (h.passivaTempo <= 0) {
-            h.passivaTempo = h.passiva.efeito.duracao || 5;
+            h.passivaTempo = (h.passivaEfeito && h.passivaEfeito.duracao) || 7;
             h.passivaAtiva = true;
           }
         }
@@ -450,7 +508,7 @@
         if (sk.tipo === 'basico') return;
         var cd = h.cds[sk.id];
         if (!cd || cd.restante > 0) return;
-        var mult = sk.multiplicador || 1;
+        var mult = sk.multiplicadorEfetivo || sk.multiplicador || 1;
         var dano = Math.max(1, Math.round(h.stats.atk * mult));
         battle.enemies.forEach(function (e) {
           if (e.morto) return;
@@ -550,7 +608,7 @@
             var pRing = pSlot.querySelector('.hero-passive-ring');
             var pText = pSlot.querySelector('.hero-passive-cd-text');
             var pIcon = pSlot.querySelector('.hero-passive-icon');
-            var total = h.passivaAtiva ? (h.passiva.efeito.duracao || 5) : (h.passiva.intervalo || 15);
+            var total = h.passivaAtiva ? ((h.passivaEfeito && h.passivaEfeito.duracao) || 7) : (h.passiva.intervalo || 15);
             var pPct = Math.max(0, Math.min(100, (h.passivaTempo / total) * 100));
             if (pRing) pRing.style.setProperty('--cd-pct', pPct);
             if (h.passivaAtiva) {
@@ -803,6 +861,7 @@
       for (var s = 1; s <= 5; s++) {
         starOptions += '<option value="' + s + '"' + (c.estrelas === s ? ' selected' : '') + '>★ ' + s + '</option>';
       }
+      starOptions += '<option value="6"' + (c.estrelas === 6 ? ' selected' : '') + '>🔴 DESPERTAR</option>';
 
       panel.innerHTML =
         '<div class="hero-detail-card">' +
@@ -1232,8 +1291,18 @@
 
     function tutFlow(steps) {
       return '<div class="tut-flow-steps">' + steps.map(function (s) {
-        return '<div class="tut-flow-step">' + s + '</div>';
+        var cls = tierClasse(s);
+        return '<div class="tut-flow-step ' + cls + '">' + s + '</div>';
       }).join('<div class="tut-flow-arrow">↓</div>') + '</div>';
+    }
+
+    function tierClasse(nome) {
+      var t = (nome || '').toLowerCase();
+      var map = { 'comum': 'tier-common', 'raro': 'tier-rare', 'ultra': 'tier-ultra', 'lend': 'tier-legendary', 'mit': 'tier-mythic' };
+      for (var k in map) {
+        if (t.indexOf(k) !== -1) return map[k];
+      }
+      return '';
     }
 
     function tutCard(icon, titulo, desc) {

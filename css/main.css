@@ -1112,17 +1112,20 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 /* tier background colors */
-.hero-token.tier-common { background: linear-gradient(180deg, #1e2642, rgba(148,163,184,0.15)); border-color: #475569; }
-.hero-token.tier-rare { background: linear-gradient(180deg, #1e2642, rgba(99,102,241,0.18)); border-color: #4f46e5; }
-.hero-token.tier-ultra { background: linear-gradient(180deg, #1e2642, rgba(168,85,247,0.18)); border-color: #9333ea; }
-.hero-token.tier-legendary { background: linear-gradient(180deg, #1e2642, rgba(245,183,49,0.18)); border-color: #d97706; }
-.hero-token.tier-mythic { background: linear-gradient(180deg, #1e2642, rgba(239,68,68,0.18)); border-color: #dc2626; }
+.hero-token.tier-common { background: linear-gradient(180deg, #eef2f7, #cbd5e1); border-color: #94a3b8; }
+.hero-token.tier-rare { background: linear-gradient(180deg, #3b82f6, #1d4ed8); border-color: #60a5fa; }
+.hero-token.tier-ultra { background: linear-gradient(180deg, #9333ea, #6b21a8); border-color: #c084fc; }
+.hero-token.tier-legendary { background: linear-gradient(180deg, #f59e0b, #b45309); border-color: #fbbf24; }
+.hero-token.tier-mythic { background: linear-gradient(180deg, #dc2626, #7f1d1d); border-color: #f87171; }
 
-.hero-token.selected.tier-common { box-shadow: 0 0 10px rgba(148,163,184,0.4); }
-.hero-token.selected.tier-rare { box-shadow: 0 0 10px rgba(99,102,241,0.5); }
-.hero-token.selected.tier-ultra { box-shadow: 0 0 10px rgba(168,85,247,0.5); }
-.hero-token.selected.tier-legendary { box-shadow: 0 0 10px rgba(245,183,49,0.5); }
-.hero-token.selected.tier-mythic { box-shadow: 0 0 10px rgba(239,68,68,0.5); }
+.hero-token.tier-common .hero-token-name, .hero-token.tier-common .hero-token-stars { color: #1e293b; text-shadow: none; }
+.hero-token.tier-rare .hero-token-name, .hero-token.tier-ultra .hero-token-name, .hero-token.tier-legendary .hero-token-name, .hero-token.tier-mythic .hero-token-name { color: #fff; }
+
+.hero-token.selected.tier-common { box-shadow: 0 0 12px rgba(148,163,184,0.6); }
+.hero-token.selected.tier-rare { box-shadow: 0 0 12px rgba(59,130,246,0.7); }
+.hero-token.selected.tier-ultra { box-shadow: 0 0 12px rgba(168,85,247,0.7); }
+.hero-token.selected.tier-legendary { box-shadow: 0 0 12px rgba(245,183,49,0.7); }
+.hero-token.selected.tier-mythic { box-shadow: 0 0 16px rgba(239,68,68,0.8); }
 
 .hero-details-panel {
   background: var(--bg-card);
@@ -1271,11 +1274,11 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   padding: 0.1rem 0.45rem;
 }
 
-.badge-tier.tier-common { background: rgba(148,163,184,0.18); color: #cbd5e1; border-color: #475569; }
-.badge-tier.tier-rare { background: rgba(99,102,241,0.22); color: #a5b4fc; border-color: #4f46e5; }
-.badge-tier.tier-ultra { background: rgba(168,85,247,0.22); color: #d8b4fe; border-color: #9333ea; }
-.badge-tier.tier-legendary { background: rgba(245,183,49,0.2); color: #fcd34d; border-color: #d97706; }
-.badge-tier.tier-mythic { background: rgba(239,68,68,0.22); color: #fca5a5; border-color: #dc2626; }
+.badge-tier.tier-common { background: linear-gradient(180deg, #f8fafc, #cbd5e1); color: #1e293b; border-color: #94a3b8; }
+.badge-tier.tier-rare { background: linear-gradient(180deg, #60a5fa, #2563eb); color: #ffffff; border-color: #1d4ed8; }
+.badge-tier.tier-ultra { background: linear-gradient(180deg, #c084fc, #7e22ce); color: #ffffff; border-color: #6b21a8; }
+.badge-tier.tier-legendary { background: linear-gradient(180deg, #fbbf24, #f59e0b); color: #1e1b2e; border-color: #d97706; }
+.badge-tier.tier-mythic { background: linear-gradient(180deg, #f87171, #b91c1c); color: #ffffff; border-color: #7f1d1d; box-shadow: 0 0 10px rgba(239,68,68,0.55); text-shadow: 0 0 6px rgba(0,0,0,0.35); }
 
 .hero-detail-stars {
   margin-top: 0.2rem;
@@ -1929,11 +1932,11 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   border: 1px solid;
 }
 
-.tier-common { color: #94a3b8; border-color: #475569; }
-.tier-rare { color: #6366f1; border-color: #4f46e5; }
-.tier-ultra { color: #a855f7; border-color: #9333ea; }
-.tier-legendary { color: #f5b731; border-color: #d97706; }
-.tier-mythic { color: #ef4444; border-color: #dc2626; }
+.tier-common { color: #1e293b; border-color: #94a3b8; background: #e2e8f0; }
+.tier-rare { color: #ffffff; border-color: #1d4ed8; background: #2563eb; }
+.tier-ultra { color: #ffffff; border-color: #6b21a8; background: #9333ea; }
+.tier-legendary { color: #1e1b2e; border-color: #b45309; background: #f59e0b; }
+.tier-mythic { color: #ffffff; border-color: #7f1d1d; background: #b91c1c; box-shadow: 0 0 10px rgba(239,68,68,0.5); }
 
 /* ─── SAVE PAGE ─────────────────────────── */
 .save-page {
@@ -2177,7 +2180,14 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   border-radius: var(--radius-sm);
   text-align: center;
   min-width: 180px;
+  transition: all var(--transition);
 }
+
+.tut-flow-step.tier-common { background: #e2e8f0; border-color: #94a3b8; color: #1e293b; }
+.tut-flow-step.tier-rare { background: #2563eb; border-color: #1d4ed8; color: #fff; }
+.tut-flow-step.tier-ultra { background: #9333ea; border-color: #6b21a8; color: #fff; }
+.tut-flow-step.tier-legendary { background: #f59e0b; border-color: #b45309; color: #1e1b2e; }
+.tut-flow-step.tier-mythic { background: #b91c1c; border-color: #7f1d1d; color: #fff; box-shadow: 0 0 10px rgba(239,68,68,0.5); }
 
 .tut-flow-arrow { color: var(--accent-gold); font-size: 0.85rem; line-height: 1.1; padding: 0.15rem 0; }
 
