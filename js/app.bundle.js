@@ -101,11 +101,13 @@
     var tm = TIER_MULT[c.tier] || 1;
     var estrelas = c.estrelas || 1;
     var stats = {};
-    // Atributos = Base + ((Nível - 1) * Crescimento), depois aplica o multiplicador do Tier.
+    // Atributos = Base + ((Nível - 1) * Crescimento). Stats fixos (crescimento 0)
+    // permanecem constantes; apenas os que escalam recebem o multiplicador do Tier.
     Object.keys(c.stats).forEach(function (k) {
       var base = c.stats[k];
       var cres = (c.crescimento && c.crescimento[k]) || 0;
-      var v = (base + cres * (lv - 1)) * tm;
+      var v = base + cres * (lv - 1);
+      if (cres > 0) v = v * tm;
       stats[k] = k === 'velocidadeAtaque' ? Math.round(v * 100) / 100 : Math.round(v);
     });
     var habilidades = (c.habilidades || []).map(function (h) {
