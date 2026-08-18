@@ -575,12 +575,14 @@
         var typeClass = h.tipo === 'basico' ? 'badge-blue' : 'badge-red';
         var img = SKILL_ICONS[h.id] ? '<img src="' + SKILL_ICONS[h.id] + '" alt="' + h.nome + '" />' : (h.tipo === 'basico' ? '🔮' : '💫');
         return '<div class="skill-row">' +
-          '<div class="skill-top">' +
-            '<span class="skill-icon-thumb">' + img + '</span>' +
-            '<span class="skill-name">' + h.nome + ' <span class="badge ' + typeClass + '">' + typeLabel + '</span></span>' +
-            '<span class="skill-mult" title="Multiplicador de dano da habilidade">' + multTxt(h.multiplicador) + '</span>' +
+          '<div class="skill-icon-thumb">' + img + '</div>' +
+          '<div class="skill-body">' +
+            '<div class="skill-top">' +
+              '<span class="skill-name">' + h.nome + ' <span class="badge ' + typeClass + '">' + typeLabel + '</span></span>' +
+              '<span class="skill-mult" title="Multiplicador de dano da habilidade">' + multTxt(h.multiplicador) + '</span>' +
+            '</div>' +
+            '<div class="skill-desc">' + h.descricao + '</div>' +
           '</div>' +
-          '<div class="skill-desc">' + h.descricao + '</div>' +
         '</div>';
       }).join('');
 
