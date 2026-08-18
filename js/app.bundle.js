@@ -526,13 +526,16 @@
     function starsHtml(n) {
       var s = '';
       for (var i = 0; i < n; i++) s += '★';
-      return s || '☆';
+      s = s || '☆';
+      if (n >= 6) return '<span class="star-aura">' + s.slice(0, 5) + '</span>';
+      return s;
     }
 
     function starsProgress(n) {
       var filled = Math.max(0, Math.min(n, 5));
       var s = '';
       for (var i = 0; i < 5; i++) s += (i < filled ? '★' : '☆');
+      if (n >= 6) return '<span class="star-aura">' + s + '</span>';
       return s;
     }
 

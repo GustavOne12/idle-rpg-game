@@ -1335,6 +1335,17 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   text-shadow: 0 0 5px rgba(245,183,49,0.4);
 }
 
+.star-aura {
+  color: #ff2d2d;
+  text-shadow: 0 0 6px rgba(255,45,45,0.9), 0 0 12px rgba(255,45,45,0.55), 0 0 20px rgba(255,45,45,0.3);
+  animation: starAuraPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes starAuraPulse {
+  0%, 100% { text-shadow: 0 0 6px rgba(255,45,45,0.9), 0 0 12px rgba(255,45,45,0.55), 0 0 20px rgba(255,45,45,0.3); }
+  50% { text-shadow: 0 0 10px rgba(255,45,45,1), 0 0 22px rgba(255,45,45,0.7), 0 0 34px rgba(255,45,45,0.45); }
+}
+
 .skill-icon-thumb {
   width: 40px;
   height: 40px;
