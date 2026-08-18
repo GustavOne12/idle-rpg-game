@@ -5,7 +5,9 @@
   var LUNA = {
     id: 'luna_01', nome: 'Luna', titulo: 'Tecelã da Noite',
     classe: 'Maga', especialidade: 'Dano em Área', tier: 'Comum', nivel: 1, estrelas: 1,
+    xpAtual: 0, fatorDificuldade: 1.45,
     stats: { hp: 120, hpMax: 120, atk: 45, def: 5, velocidadeAtaque: 0.8, chanceCritica: 15, danoCritico: 150 },
+    crescimento: { hp: 8, hpMax: 8, atk: 3, def: 0.2, velocidadeAtaque: 0, chanceCritica: 0.2, danoCritico: 1 },
     passiva: {
       id: 'ciclo_lunar', nome: 'Ciclo Lunar',
       descricao: 'A cada 15s, a fase da lua se alinha por 5s. Durante esse período, os ataques básicos causam 100% de dano no alvo focado e 50% em todos os inimigos ao redor.',
@@ -30,6 +32,49 @@
     eclipse_total: 'chars/Luna/Habilidade - Eclipse Total.jpg',
   };
 
+  // ─── PROGRESSION (EXP / TIER / STARS) ────
+  var EXP_BASE = 100;
+  var NIVEL_MAXIMO = 100;
+  var EXP_FATOR_PADRAO = 1.45;
+
+  var TIER_ORDEM = ['Comum', 'Raro', 'Ultra-Raro', 'Lendário', 'Mítico'];
+  var TIER_MULT = { 'Comum': 1.0, 'Raro': 1.15, 'Ultra-Raro': 1.35, 'Lendário': 1.60, 'Mítico': 2.0 };
+  // Multiplicador de habilidades por estrela (valores provisórios; a listagem da Luna virá depois)
+  var STAR_MULT = { 1: 1.0, 2: 1.15, 3: 1.30, 4: 1.45, 5: 1.60 };
+
+  var ITEM_DROPS = [
+    { id: 'lanca_prata', nome: 'Lança de Prata', tipo: 'arma', icone: '🗡️', bonus: { atk: 5 } },
+    { id: 'manto_noite', nome: 'Manto da Noite', tipo: 'armadura', icone: '🛡️', bonus: { def: 2 } },
+    { id: 'anel_lunar', nome: 'Anel Lunar', tipo: 'acessorio', icone: '💍', bonus: { chanceCritica: 5 } },
+  ];
+
+  function expProximoNivel(nivel, fator) {
+    return Math.round(EXP_BASE * Math.pow(nivel, fator));
+  }
+
+  function expPct(c) {
+    var nec = expProximoNivel(c.nivel, c.fatorDificuldade || EXP_FATOR_PADRAO);
+    var pct = Math.min(100, Math.round(((c.xpAtual || 0) / nec) * 100));
+    return pct;
+  }
+
+  function calcularAtributos(c) {
+    var lv = c.nivel || 1;
+    var tm = TIER_MULT[c.tier] || 1;
+    var sm = STAR_MULT[c.estrelas] || 1;
+    var stats = {};
+    Object.keys(c.stats).forEach(function (k) {
+      var base = c.stats[k];
+      var cres = (c.crescimento && c.crescimento[k]) || 0;
+      var v = (base + cres * (lv - 1)) * tm;
+      stats[k] = k === 'velocidadeAtaque' ? Math.round(v * 100) / 100 : Math.round(v);
+    });
+    var habilidades = (c.habilidades || []).map(function (h) {
+      return Object.assign({}, h, { multiplicadorEfetivo: Math.round((h.multiplicador * sm) * 100) / 100 });
+    });
+    return { stats: stats, habilidades: habilidades, tierMult: tm, starMult: sm };
+  }
+
   // ─── STATE ───────────────────────────────
   var STORAGE_KEY = 'idle-rpg-save';
   var listeners = [];
@@ -40,6 +85,7 @@
     return {
       moedas: 250, gemas: 10,
       personagens: [l], equipe: [l.id, null, null],
+      inventario: [],
       progresso: { waveAtual: 1, waveMax: 1, bossDerrotados: 0, dificuldade: 1 },
       config: { volume: 50 }
     };
@@ -83,8 +129,12 @@
             if (p.stats[k] === undefined) { p.stats[k] = template.stats[k]; changed = true; }
           });
         }
+        if (p.xpAtual === undefined && template.xpAtual !== undefined) { p.xpAtual = template.xpAtual; changed = true; }
+        if (p.fatorDificuldade === undefined && template.fatorDificuldade !== undefined) { p.fatorDificuldade = template.fatorDificuldade; changed = true; }
+        if (!p.crescimento && template.crescimento) { p.crescimento = template.crescimento; changed = true; }
       }
     });
+    if (state.inventario === undefined) { state.inventario = []; changed = true; }
     if (changed) notify();
   }
 
@@ -139,12 +189,37 @@
 
   // ─── PAGE: BATTLE ────────────────────────
   var ENEMY_TEMPLATES = {
-    goblin: { nome: 'Goblin', lv: 1, hpMax: 1000, atk: 0, velocidadeAtaque: 1.0, emoji: '👹' },
-    orc: { nome: 'Orc', lv: 2, hpMax: 90, atk: 0, velocidadeAtaque: 0.8, emoji: '👺' },
-    troll: { nome: 'Troll', lv: 3, hpMax: 140, atk: 0, velocidadeAtaque: 0.6, emoji: '👿' },
+    goblin: { nome: 'Goblin', lv: 1, hpMax: 1000, atk: 0, velocidadeAtaque: 1.0, emoji: '👹', exp: 15, dropChance: 0.15 },
+    orc: { nome: 'Orc', lv: 2, hpMax: 90, atk: 0, velocidadeAtaque: 0.8, emoji: '👺', exp: 25, dropChance: 0.2 },
+    troll: { nome: 'Troll', lv: 3, hpMax: 140, atk: 0, velocidadeAtaque: 0.6, emoji: '👿', exp: 40, dropChance: 0.25 },
   };
 
   var WAVE_ENEMIES = { 1: ['goblin', 'goblin', 'goblin'] };
+
+  var runPot = null;
+
+  function novaRun() {
+    runPot = { xp: 0, itens: [], mortes: {} };
+  }
+
+  function recompensarMorte(e) {
+    if (!runPot) return;
+    runPot.xp += e.exp || 0;
+    runPot.mortes[e.nome] = (runPot.mortes[e.nome] || 0) + 1;
+    if (e.dropChance && Math.random() < e.dropChance) {
+      var it = ITEM_DROPS[Math.floor(Math.random() * ITEM_DROPS.length)];
+      runPot.itens.push({ id: it.id, nome: it.nome, tipo: it.tipo, icone: it.icone, bonus: it.bonus });
+    }
+    atualizarPoteUI();
+  }
+
+  function atualizarPoteUI() {
+    if (!runPot) return;
+    var expEl = $('run-pot-exp');
+    var itemsEl = $('run-pot-items');
+    if (expEl) expEl.textContent = runPot.xp + ' EXP';
+    if (itemsEl) itemsEl.textContent = runPot.itens.length + ' item(ns)';
+  }
 
   function getWaveEnemies(n) {
     return WAVE_ENEMIES[n] || ['goblin'];
@@ -154,21 +229,24 @@
   var battleTimer = null;
 
   function startBattle() {
+    novaRun();
     var eq = getEquipe();
 
     var heroes = eq.filter(Boolean).map(function (c) {
+      var calc = calcularAtributos(c);
+      var cs = calc.stats;
       return {
         id: c.id, nome: c.nome,
         stats: {
-          hp: c.stats.hpMax, hpMax: c.stats.hpMax, atk: c.stats.atk, def: c.stats.def,
-          velocidadeAtaque: c.stats.velocidadeAtaque, chanceCritica: c.stats.chanceCritica, danoCritico: c.stats.danoCritico
+          hp: cs.hpMax, hpMax: cs.hpMax, atk: cs.atk, def: cs.def,
+          velocidadeAtaque: cs.velocidadeAtaque, chanceCritica: cs.chanceCritica, danoCritico: cs.danoCritico
         },
-        habilidades: c.habilidades,
+        habilidades: calc.habilidades,
         passiva: c.passiva || null,
         passivaTempo: (c.passiva && c.passiva.intervalo) || 0,
         passivaAtiva: false,
-        cds: (c.habilidades || []).reduce(function (acc, sk) {
-          var total = sk.tipo === 'basico' ? (1 / c.stats.velocidadeAtaque) : (sk.cooldown || 8);
+        cds: (calc.habilidades || []).reduce(function (acc, sk) {
+          var total = sk.tipo === 'basico' ? (1 / cs.velocidadeAtaque) : (sk.cooldown || 8);
           acc[sk.id] = { total: total, restante: total };
           return acc;
         }, {}),
@@ -182,6 +260,7 @@
       return {
         id: key + '_' + (i + 1), nome: t.nome, lv: t.lv,
         hp: t.hpMax, hpMax: t.hpMax, atk: t.atk, velocidadeAtaque: t.velocidadeAtaque, emoji: t.emoji,
+        exp: t.exp, dropChance: t.dropChance,
         atkTempo: 0, morto: false,
       };
     });
@@ -225,6 +304,8 @@
       }
 
       var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
+      var calc = calcularAtributos(c);
+      var cs = calc.stats;
 
       return '<div class="hero-card filled" data-hero-id="' + c.id + '">' +
         '<div class="hero-card-top">' +
@@ -235,7 +316,7 @@
         '</div>' +
         '<div class="hero-hp-row">' +
           '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:100%"></div></div>' +
-          '<span class="hero-hp-text">' + c.stats.hpMax + '/' + c.stats.hpMax + '</span>' +
+          '<span class="hero-hp-text">' + cs.hpMax + '/' + cs.hpMax + '</span>' +
         '</div>' +
         '<div class="hero-card-skills">' + passiveSlot(c.passiva) + skillSlot(skills[0], '🔮') + skillSlot(skills[1], '💫') + '</div>' +
       '</div>';
@@ -275,6 +356,7 @@
         '<div class="battle-left"><div class="battle-left-title">Sua Equipe</div>' + heroCards + '</div>' +
         '<div class="battle-center">' +
           '<div class="battle-wave-bar"><span class="wave-label">WAVE ' + state.progresso.waveAtual + ' / ' + state.progresso.waveMax + '</span><span class="diff-label">Dificuldade ' + state.progresso.dificuldade + '</span></div>' +
+          '<div class="battle-test-row"><button class="btn-secondary" id="btn-test-gameover" style="font-size:0.7rem;">💀 Fim de Jogo (Teste)</button></div>' +
           '<div class="battle-arena">' +
             '<div class="arena-side">' + arenaHeroes + '</div>' +
             '<div class="arena-vs">VS</div>' +
@@ -283,6 +365,11 @@
         '</div>' +
         '<div class="battle-loot">' +
           '<div class="loot-header"><span class="loot-title">📦 Drop de Itens</span></div>' +
+          '<div class="run-pot-box">' +
+            '<div class="run-pot-row"><span class="run-pot-label">🪙 Pote da Run</span><span class="run-pot-exp" id="run-pot-exp">0 EXP</span></div>' +
+            '<div class="run-pot-row"><span class="run-pot-label">🎒 Itens</span><span class="run-pot-items" id="run-pot-items">0</span></div>' +
+            '<div class="run-pot-note">EXP e itens ficam retidos na run. Distribuídos apenas no fim da partida.</div>' +
+          '</div>' +
           '<div class="loot-items" id="loot-log">' +
             '<div class="loot-placeholder">Os drops aparecerão durante o combate...</div>' +
           '</div>' +
@@ -293,6 +380,9 @@
 
     updateBattleUI();
     startBattleTimer();
+
+    var btnGo = $('btn-test-gameover');
+    if (btnGo) btnGo.addEventListener('click', function () { mostrarFimDeJogo(); });
   }
 
   function startBattleTimer() {
@@ -322,7 +412,7 @@
         var mult = habilidade ? (habilidade.multiplicador || 1) : 1;
         var dano = Math.max(1, Math.round(h.stats.atk * mult));
         alvo.hp = Math.max(0, alvo.hp - dano);
-        if (alvo.hp <= 0) alvo.morto = true;
+        if (alvo.hp <= 0) matarInimigo(alvo);
         animarAtaque('hero', h.id);
         if (habilidade && h.cds[habilidade.id]) h.cds[habilidade.id].restante = h.cds[habilidade.id].total;
         // passive: when active, every basic attack also splashes nearby enemies
@@ -331,7 +421,7 @@
           battle.enemies.forEach(function (e) {
             if (e.morto || e.id === alvo.id) return;
             e.hp = Math.max(0, e.hp - danoArea);
-            if (e.hp <= 0) e.morto = true;
+            if (e.hp <= 0) matarInimigo(e);
           });
         }
       }
@@ -365,7 +455,7 @@
         battle.enemies.forEach(function (e) {
           if (e.morto) return;
           e.hp = Math.max(0, e.hp - dano);
-          if (e.hp <= 0) e.morto = true;
+          if (e.hp <= 0) matarInimigo(e);
         });
         animarAtaque('hero', h.id);
         cd.restante = cd.total;
@@ -401,8 +491,14 @@
     } else if (heroisMortos && !battle.derrota) {
       battle.derrota = true;
       stopBattleTimer();
-      mostrarBanner('DERROTA!', 'Sua equipe foi derrotada. Reinicie os testes.');
+      mostrarFimDeJogo();
     }
+  }
+
+  function matarInimigo(e) {
+    if (e.morto) return;
+    e.morto = true;
+    recompensarMorte(e);
   }
 
   function animarAtaque(tipo, id) {
@@ -504,10 +600,101 @@
         '<div class="battle-banner-title">' + titulo + '</div>' +
         '<div class="battle-banner-text">' + texto + '</div>' +
         '<button class="btn-gold" id="btn-reset-battle" style="font-size:0.85rem;">🔄 Reiniciar Teste</button>' +
+        '<button class="btn-secondary" id="btn-end-run" style="font-size:0.85rem;">💀 Fim de Jogo (Teste)</button>' +
       '</div>';
     banner.classList.remove('hidden');
     var btn = $('btn-reset-battle');
     if (btn) btn.addEventListener('click', function () { navigate('battle'); });
+    var btnEnd = $('btn-end-run');
+    if (btnEnd) btnEnd.addEventListener('click', function () { mostrarFimDeJogo(); });
+  }
+
+  function processarFimDeRun() {
+    var resultados = [];
+    var expPote = runPot ? runPot.xp : 0;
+    var itens = runPot ? runPot.itens : [];
+
+    getEquipe().forEach(function (c) {
+      if (!c) return;
+      var lvAntes = c.nivel;
+      var xp = (c.xpAtual || 0) + expPote;
+      var fator = c.fatorDificuldade || EXP_FATOR_PADRAO;
+      var niveis = 0;
+      while (c.nivel < NIVEL_MAXIMO && xp >= expProximoNivel(c.nivel, fator)) {
+        xp -= expProximoNivel(c.nivel, fator);
+        c.nivel++;
+        niveis++;
+      }
+      if (c.nivel >= NIVEL_MAXIMO) xp = 0;
+      c.xpAtual = Math.round(xp);
+      resultados.push({ id: c.id, nome: c.nome, lvAntes: lvAntes, lvDepois: c.nivel, niveis: niveis, expGanho: expPote });
+    });
+
+    itens.forEach(function (it) {
+      if (state.inventario) state.inventario.push(it);
+    });
+    saveGame();
+    return { resultados: resultados, expPote: expPote, itens: itens };
+  }
+
+  function mostrarFimDeJogo() {
+    if (battle) { battle.derrota = true; battle.concluida = true; }
+    stopBattleTimer();
+
+    var res = processarFimDeRun();
+    var expPote = res.expPote;
+    var itens = res.itens;
+
+    var itensHtml = itens.length
+      ? itens.map(function (it) {
+          return '<div class="run-item"><span class="run-item-icon">' + it.icone + '</span><span class="run-item-name">' + it.nome + '</span><span class="run-item-tag">' + it.tipo + '</span></div>';
+        }).join('')
+      : '<div class="run-item empty">Nenhum item foi coletado nesta run.</div>';
+
+    var charRows = res.resultados.map(function (r) {
+      var up = r.niveis > 0;
+      return '<div class="run-char ' + (up ? 'leveled' : '') + '">' +
+        '<div class="run-char-name">' + r.nome + '</div>' +
+        '<div class="run-char-lv">' + (up
+          ? '<span class="lv-before">LV ' + r.lvAntes + '</span> <span class="lv-arrow">→</span> <span class="lv-after">LV ' + r.lvDepois + '</span> <span class="lv-up-badge">▲ +' + r.niveis + '</span>'
+          : 'LV ' + r.lvDepois + ' <span class="lv-unchanged">(sem mudança)</span>') + '</div>' +
+        '<div class="run-char-exp">+' + r.expGanho + ' EXP</div>' +
+      '</div>';
+    }).join('');
+
+    var banner = $('battle-banner');
+    if (banner) { banner.classList.add('hidden'); }
+
+    var ov = $('run-overlay');
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = 'run-overlay';
+      ov.className = 'run-overlay hidden';
+      document.body.appendChild(ov);
+    }
+    ov.innerHTML =
+      '<div class="run-modal">' +
+        '<div class="run-modal-title">💀 FIM DE JOGO</div>' +
+        '<div class="run-modal-sub">Resumo da Batalha</div>' +
+        '<div class="run-pot-summary"><span class="run-pot-sum-label">Pote da Run</span><span class="run-pot-sum-val">+' + expPote + ' EXP</span></div>' +
+        '<div class="run-chars">' + charRows + '</div>' +
+        '<div class="run-items-title">🎒 Itens levados para casa</div>' +
+        '<div class="run-items">' + itensHtml + '</div>' +
+        '<div class="run-actions">' +
+          '<button class="btn-secondary" id="btn-run-hub">🏠 Voltar ao Menu</button>' +
+          '<button class="btn-gold" id="btn-run-heroes">🛡️ Ir para Heróis</button>' +
+        '</div>' +
+      '</div>';
+    ov.classList.remove('hidden');
+
+    $('btn-run-hub').addEventListener('click', function () {
+      ov.classList.add('hidden');
+      navigate('hub');
+    });
+    $('btn-run-heroes').addEventListener('click', function () {
+      ov.classList.add('hidden');
+      navigate('heroes');
+    });
   }
 
   // ─── PAGE: HEROES ────────────────────────
@@ -566,14 +753,17 @@
       var c = state.personagens.find(function (p) { return p.id === id; });
       if (!c) { panel.innerHTML = '<div class="empty-state"><div class="empty-state-text">Selecione um herói à esquerda.</div></div>'; return; }
 
-      var hpPct = Math.round((c.stats.hp / c.stats.hpMax) * 100);
+      var calc = calcularAtributos(c);
+      var cs = calc.stats;
+      var habilidades = calc.habilidades;
+      var hpPct = Math.round((cs.hp / cs.hpMax) * 100);
       var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
 
       function multTxt(m) {
         return 'ATK ×' + (m || 1).toFixed(1).replace('.', ',');
       }
 
-      var skillsHtml = c.habilidades.map(function (h) {
+      var skillsHtml = habilidades.map(function (h) {
         var typeLabel = h.tipo === 'basico' ? 'Básico' : 'Única';
         var typeClass = h.tipo === 'basico' ? 'badge-blue' : 'badge-red';
         var img = SKILL_ICONS[h.id] ? '<img src="' + SKILL_ICONS[h.id] + '" alt="' + h.nome + '" />' : (h.tipo === 'basico' ? '🔮' : '💫');
@@ -582,7 +772,7 @@
           '<div class="skill-body">' +
             '<div class="skill-top">' +
               '<span class="skill-name">' + h.nome + ' <span class="badge ' + typeClass + '">' + typeLabel + '</span></span>' +
-              '<span class="skill-mult" title="Multiplicador de dano da habilidade">' + multTxt(h.multiplicador) + '</span>' +
+              '<span class="skill-mult" title="Multiplicador de dano da habilidade">' + multTxt(h.multiplicadorEfetivo) + '</span>' +
             '</div>' +
             '<div class="skill-desc">' + h.descricao + '</div>' +
           '</div>' +
@@ -600,6 +790,18 @@
           '</div>' +
           '<div class="passive-desc">' + c.passiva.descricao + '</div>' +
         '</div>';
+      }
+
+      var lvOptions = '';
+      for (var l = 1; l <= NIVEL_MAXIMO; l++) {
+        lvOptions += '<option value="' + l + '"' + (c.nivel === l ? ' selected' : '') + '>' + l + '</option>';
+      }
+      var tierOptions = TIER_ORDEM.map(function (t) {
+        return '<option value="' + t + '"' + (c.tier === t ? ' selected' : '') + '>' + t + '</option>';
+      }).join('');
+      var starOptions = '';
+      for (var s = 1; s <= 5; s++) {
+        starOptions += '<option value="' + s + '"' + (c.estrelas === s ? ' selected' : '') + '>★ ' + s + '</option>';
       }
 
       panel.innerHTML =
@@ -623,17 +825,27 @@
               '<button class="btn-evoluir" disabled>EVOLUIR</button>' +
             '</div>' +
           '</div>' +
+          '<div class="hero-test-tools" title="Modo de teste — altere LV, Tier e Estrelas para validar status sem upar de verdade">' +
+            '<span class="test-tools-title">🧪 Teste</span>' +
+            '<label class="test-ctl"><span>LV</span><select id="test-lv">' + lvOptions + '</select></label>' +
+            '<label class="test-ctl"><span>TIER</span><select id="test-tier">' + tierOptions + '</select></label>' +
+            '<label class="test-ctl"><span>ESTRELAS</span><select id="test-stars">' + starOptions + '</select></label>' +
+          '</div>' +
           '<div class="hero-detail-bars">' +
-            '<div class="hero-stat-row"><span class="hero-stat-label">❤️ HP</span><span class="hero-stat-val">' + c.stats.hp + ' / ' + c.stats.hpMax + '</span></div>' +
+            '<div class="hero-stat-row"><span class="hero-stat-label">❤️ HP</span><span class="hero-stat-val">' + cs.hp + ' / ' + cs.hpMax + '</span></div>' +
             '<div class="hero-bar"><div class="hero-bar-fill hp" style="width:' + hpPct + '%"></div></div>' +
           '</div>' +
+          '<div class="exp-progress-box">' +
+            '<div class="exp-progress-label">EXP <span class="exp-progress-nums" id="exp-nums">' + (c.xpAtual || 0) + ' / ' + expProximoNivel(c.nivel, c.fatorDificuldade || EXP_FATOR_PADRAO) + '</span></div>' +
+            '<div class="exp-bar"><div class="exp-bar-fill" id="exp-bar-fill" style="width:' + expPct(c) + '%"></div></div>' +
+          '</div>' +
           '<div class="stats-grid">' +
-            '<div class="stat-box" title="Poder de ataque"><div class="stat-box-label">ATK</div><div class="stat-box-val">' + c.stats.atk + '</div></div>' +
-            '<div class="stat-box" title="Redução de dano: ' + c.stats.def + '%"><div class="stat-box-label">DEF</div><div class="stat-box-val">' + c.stats.def + '%</div></div>' +
-            '<div class="stat-box" title="Velocidade de ataque"><div class="stat-box-label">SPD</div><div class="stat-box-val">' + c.stats.velocidadeAtaque + '</div></div>' +
-            '<div class="stat-box" title="Chance de acerto crítico"><div class="stat-box-label">CRT</div><div class="stat-box-val">' + c.stats.chanceCritica + '%</div></div>' +
-            '<div class="stat-box" title="Dano de acerto crítico"><div class="stat-box-label">DMG CRT</div><div class="stat-box-val">' + c.stats.danoCritico + '%</div></div>' +
-            '<div class="stat-box" title="Estrelas — melhoram as habilidades"><div class="stat-box-label">ESTRELAS</div><div class="stat-box-val star-progress">' + starsProgress(c.estrelas) + '</div></div>' +
+            '<div class="stat-box" title="Poder de ataque"><div class="stat-box-label">ATK</div><div class="stat-box-val">' + cs.atk + '</div></div>' +
+            '<div class="stat-box" title="Redução de dano: ' + cs.def + '%"><div class="stat-box-label">DEF</div><div class="stat-box-val">' + cs.def + '%</div></div>' +
+            '<div class="stat-box" title="Velocidade de ataque"><div class="stat-box-label">SPD</div><div class="stat-box-val">' + cs.velocidadeAtaque + '</div></div>' +
+            '<div class="stat-box" title="Chance de acerto crítico"><div class="stat-box-label">CRT</div><div class="stat-box-val">' + cs.chanceCritica + '%</div></div>' +
+            '<div class="stat-box" title="Dano de acerto crítico"><div class="stat-box-label">DMG CRT</div><div class="stat-box-val">' + cs.danoCritico + '%</div></div>' +
+            '<div class="stat-box" title="Multiplicador geral do Tier"><div class="stat-box-label">TIER ×</div><div class="stat-box-val">' + calc.tierMult.toFixed(2).replace('.', ',') + '</div></div>' +
           '</div>' +
           '<div class="hero-skills">' +
             '<div class="hero-skills-title">🌙 Passiva</div>' + passivaHtml +
@@ -662,6 +874,21 @@
           '</div>';
         });
       });
+
+      var selLv = panel.querySelector('#test-lv');
+      var selTier = panel.querySelector('#test-tier');
+      var selStars = panel.querySelector('#test-stars');
+      function onTestChange() {
+        c.nivel = parseInt(selLv.value, 10) || 1;
+        c.tier = selTier.value;
+        c.estrelas = parseInt(selStars.value, 10) || 1;
+        saveGame();
+        renderTokens();
+        renderDetails(c.id);
+      }
+      if (selLv) selLv.addEventListener('change', onTestChange);
+      if (selTier) selTier.addEventListener('change', onTestChange);
+      if (selStars) selStars.addEventListener('change', onTestChange);
     }
 
     content.innerHTML =
@@ -689,17 +916,25 @@
 
   // ─── PAGE: INVENTORY ─────────────────────
   function renderInventory() {
-    var slots = 12;
+    var itens = state.inventario || [];
     var html = '';
-    for (var i = 0; i < slots; i++) {
-      html += '<div class="inv-slot"><div class="inv-slot-icon">—</div><div class="inv-slot-label">Vazio</div></div>';
+    if (itens.length === 0) {
+      html = '<div class="inv-slot"><div class="inv-slot-icon">—</div><div class="inv-slot-label">Vazio</div></div>';
+    } else {
+      itens.forEach(function (it) {
+        html += '<div class="inv-slot" title="' + it.nome + '">' +
+          '<div class="inv-slot-icon">' + it.icone + '</div>' +
+          '<div class="inv-slot-label">' + it.nome + '</div>' +
+          '<div class="inv-slot-tag">' + it.tipo + '</div>' +
+        '</div>';
+      });
     }
 
     content.innerHTML =
       '<div class="inventory-page">' +
         '<h2 class="inventory-title">🎒 Inventário</h2>' +
         '<div class="inventory-grid">' + html + '</div>' +
-        '<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.8rem;">Itens coletados em combate aparecerão aqui.</div>' +
+        '<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.8rem;">Itens coletados em combate aparecem aqui após o fim da partida.</div>' +
       '</div>';
   }
 
@@ -1075,6 +1310,9 @@
   function navigate(page) {
     if (!routes[page]) return;
     currentPage = page;
+
+    var ov = $('run-overlay');
+    if (ov) ov.classList.add('hidden');
 
     if (page !== 'battle') stopBattleTimer();
 

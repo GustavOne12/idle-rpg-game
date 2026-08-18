@@ -7,6 +7,8 @@ export const LUNA = {
   tier: 'Comum',
   nivel: 1,
   estrelas: 1,
+  xpAtual: 0,
+  fatorDificuldade: 1.45,
 
   stats: {
     hp: 120,
@@ -16,6 +18,16 @@ export const LUNA = {
     velocidadeAtaque: 0.8,
     chanceCritica: 15,
     danoCritico: 150,
+  },
+
+  crescimento: {
+    hp: 8,
+    hpMax: 8,
+    atk: 3,
+    def: 0.2,
+    velocidadeAtaque: 0,
+    chanceCritica: 0.2,
+    danoCritico: 1,
   },
 
   passiva: {
