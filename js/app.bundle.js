@@ -171,14 +171,17 @@
       var template = CHARACTER_TEMPLATES[p.id];
       if (template) {
         if (!p.images && template.images) { p.images = template.images; changed = true; }
+        // Sempre sincroniza stats base e crescimento com o template (fonte de verdade),
+        // para que mudanças de balanceamento na Luna se apliquem a saves antigos.
         if (template.stats) {
-          Object.keys(template.stats).forEach(function (k) {
-            if (p.stats[k] === undefined) { p.stats[k] = template.stats[k]; changed = true; }
-          });
+          var statsDiferentes = JSON.stringify(p.stats) !== JSON.stringify(template.stats);
+          if (statsDiferentes) { p.stats = JSON.parse(JSON.stringify(template.stats)); changed = true; }
+        }
+        if (template.crescimento && JSON.stringify(p.crescimento) !== JSON.stringify(template.crescimento)) {
+          p.crescimento = JSON.parse(JSON.stringify(template.crescimento)); changed = true;
         }
         if (p.xpAtual === undefined && template.xpAtual !== undefined) { p.xpAtual = template.xpAtual; changed = true; }
         if (p.fatorDificuldade === undefined && template.fatorDificuldade !== undefined) { p.fatorDificuldade = template.fatorDificuldade; changed = true; }
-        if (!p.crescimento && template.crescimento) { p.crescimento = template.crescimento; changed = true; }
         if (!p.passiva && template.passiva) { p.passiva = template.passiva; changed = true; }
         if (p.passiva && template.passiva && Array.isArray(template.passiva.efeitos) && !Array.isArray(p.passiva.efeitos)) {
           p.passiva.efeitos = template.passiva.efeitos; changed = true;
@@ -186,7 +189,7 @@
         if (p.habilidades && template.habilidades) {
           template.habilidades.forEach(function (th) {
             var ph = p.habilidades.find(function (h) { return h.id === th.id; });
-            if (ph && Array.isArray(th.multiplicadores) && !Array.isArray(ph.multiplicadores)) {
+            if (ph && Array.isArray(th.multiplicadores) && JSON.stringify(ph.multiplicadores) !== JSON.stringify(th.multiplicadores)) {
               ph.multiplicadores = th.multiplicadores; changed = true;
             }
           });
