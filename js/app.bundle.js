@@ -457,19 +457,19 @@
   // - passiva (efeitos passivos, ex.: roubo de vida)
   var ENEMY_TEMPLATES = {
     mob_goblin_01: {
-      nome: 'Goblin Saqueador', lv: 1, hpMax: 30, atk: 5, velocidadeAtaque: 1.0, def: 0,
+      nome: 'Goblin Saqueador', lv: 1, hpMax: 1000, atk: 1, velocidadeAtaque: 1.0, def: 0,
       emoji: '👹', imagem: 'chars/Enemys/Goblin.png', exp: 15, dropChance: 0.15,
       // Alvo Aleatório: escolhe um herói vivo ao acaso.
       targeting: 'aleatorio',
     },
     mob_bat_01: {
-      nome: 'Morcego Sombrio', lv: 1, hpMax: 15, atk: 8, velocidadeAtaque: 1.0, def: 0,
+      nome: 'Morcego Sombrio', lv: 1, hpMax: 1000, atk: 1, velocidadeAtaque: 1.0, def: 0,
       emoji: '🦇', imagem: 'chars/Enemys/Morcego.png', exp: 20, dropChance: 0.15,
       // O Finalizador: ataca o herói com o MENOR HP ATUAL.
       targeting: 'menor_hp',
     },
     mob_ogre_01: {
-      nome: 'Ogro Escudeiro', lv: 1, hpMax: 120, atk: 3, velocidadeAtaque: 0.5, def: 0,
+      nome: 'Ogro Escudeiro', lv: 1, hpMax: 1000, atk: 1, velocidadeAtaque: 0.5, def: 0,
       emoji: '👺', imagem: 'chars/Enemys/Orc.png', exp: 30, dropChance: 0.25,
       // Suporte Defensivo: alvo aleatório. Ciclo: 2 ataques básicos e, na 3ª ação,
       // NÃO ataca — aplica buff de +5% de DEF a um aliado (monstro) aleatório.
@@ -477,7 +477,7 @@
       mecanica: { tipo: 'ciclo', ataquesAntesDoBuff: 2, buffDef: 5 },
     },
     mob_shaman_01: {
-      nome: 'Xamã Corrompido', lv: 1, hpMax: 40, atk: 0, velocidadeAtaque: 1.2, def: 0,
+      nome: 'Xamã Corrompido', lv: 1, hpMax: 1000, atk: 1, velocidadeAtaque: 1.2, def: 0,
       emoji: '🧙', imagem: 'chars/Enemys/Xamã.png', exp: 25, dropChance: 0.2,
       // Curandeiro: nunca ataca heróis. A cada intervalo (4s) cura o aliado
       // (monstro) com a MENOR % de HP atual em +12 HP.
@@ -485,7 +485,7 @@
       mecanica: { tipo: 'cura', intervalo: 4, cura: 12 },
     },
     mob_wolf_01: {
-      nome: 'Lobo Sanguinário', lv: 1, hpMax: 50, atk: 6, velocidadeAtaque: 1.0, def: 0,
+      nome: 'Lobo Sanguinário', lv: 1, hpMax: 1000, atk: 1, velocidadeAtaque: 1.0, def: 0,
       emoji: '🐺', imagem: 'chars/Enemys/lobin.png', exp: 20, dropChance: 0.2,
       // Lifesteal: alvo aleatório. Recupera em HP 50% do dano causado.
       targeting: 'aleatorio',
