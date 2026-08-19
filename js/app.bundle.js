@@ -41,14 +41,62 @@
       },
     ],
     equipamentos: { arma: null, armadura: null, acessorio: null }, magias: [],
-    images: { perfil: 'chars/Luna/Perfil - LUNA.png', combat: 'chars/Luna/Combat - Luna.png' },
+    images: { perfil: 'chars/Luna/Perfil - LUNA.png', combat: 'chars/Luna/Luna_V2_combat.png' },
   };
 
-  var CHARACTER_TEMPLATES = { char_001: LUNA };
+  // ─── TADOW DATA ───────────────────────────
+  var TADOW = {
+    id: 'char_002', nome: 'Tadow', titulo: 'A Chuva de Lâminas',
+    classe: 'Assassino', especialidade: 'Velocidade de Ataque e Pressão Constante', tier: 'Comum', nivel: 1, estrelas: 1,
+    xpAtual: 0, fatorDificuldade: 1.45,
+    // Atributos base no nível 1.
+    stats: { hp: 30, hpMax: 30, atk: 30, def: 3, velocidadeAtaque: 1.8, chanceCritica: 10, danoCritico: 130 },
+    // Crescimento por nível (Base + ((Nível - 1) * Crescimento)). Campos fixos usam 0.
+    crescimento: { hp: 6, hpMax: 6, atk: 2, def: 0, velocidadeAtaque: 0, chanceCritica: 0, danoCritico: 0 },
+    passiva: {
+      id: 'impulso_implacavel', nome: 'Impulso Implacável',
+      descricao: 'A cada 5 ataques básicos realizados, arremessa facas em inimigos aleatórios vivos. No Despertar, as facas causam Sangramento: dano que ignora completamente a DEF do inimigo.',
+      // Gatilho por CONTADOR de ataques básicos (não usa timer como a Luna).
+      tipo: 'contador', gatilho: 5,
+      // Progressão por estrela (índice 1-5 + Despertar = 6): nº de facas, multiplicador por faca e sangramento.
+      efeitos: [
+        null,
+        { facas: 3, mult: 0.5, sangramento: false },
+        { facas: 3, mult: 0.6, sangramento: false },
+        { facas: 4, mult: 0.7, sangramento: false },
+        { facas: 4, mult: 0.8, sangramento: false },
+        { facas: 5, mult: 1.0, sangramento: false },
+        { facas: 5, mult: 1.0, sangramento: true },
+      ],
+      icons: { ativo: 'chars/Tadow/Tadow - Passiva ativa.png', cooldown: 'chars/Tadow/Tadow - Passiva Coodown.png' },
+    },
+    habilidades: [
+      {
+        id: 'arremesso_agil', nome: 'Arremesso Ágil', tipo: 'basico',
+        descricao: 'Arremessa uma adaga rápida no inimigo da frente.', alvo: 'padrao', area: false,
+        // Multiplicador de dano baseado no ATK (índice 1-5 + Despertar = 6).
+        multiplicadores: [null, 0.35, 0.45, 0.55, 0.70, 0.85, 1.0],
+      },
+      {
+        id: 'tempestade_turquesa', nome: 'Tempestade Turquesa', tipo: 'unica', cooldown: 5,
+        descricao: 'Dispara 3 facas no mesmo inimigo — foca o alvo mais ao fundo da formação inimiga (retaguarda). O multiplicador é POR FACA (dano total = multiplicador × 3).',
+        alvo: 'retaguarda', area: false,
+        // Multiplicador POR FACA baseado no ATK (índice 1-5 + Despertar = 6). Dano total = mult × 3.
+        multiplicadores: [null, 1.2, 1.5, 1.7, 2.0, 2.2, 2.5],
+        hits: 3,
+      },
+    ],
+    equipamentos: { arma: null, armadura: null, acessorio: null }, magias: [],
+    images: { perfil: 'chars/Tadow/Tadow - Perfil.jpg', combat: 'chars/Tadow/Tadow - Combate.png' },
+  };
+
+  var CHARACTER_TEMPLATES = { char_001: LUNA, char_002: TADOW };
 
   var SKILL_ICONS = {
     orbe_de_prata: 'chars/Luna/Ataque básico - Luna.jpg',
     eclipse_total: 'chars/Luna/Habilidade - Eclipse Total.jpg',
+    arremesso_agil: 'chars/Tadow/Tadow - Ataque básico.png',
+    tempestade_turquesa: 'chars/Tadow/Tadow - Habilidade.png',
   };
 
   // ─── PROGRESSION (EXP / TIER / STARS) ────
@@ -96,6 +144,36 @@
     return p.efeitos[1] || null;
   }
 
+  // Formata um número de multiplicador (ex.: 0.35 -> "0,35").
+  function fmtMult(v) {
+    var s = String(Math.round((v || 0) * 100) / 100);
+    return s.replace('.', ',');
+  }
+
+  // Monta o texto dinâmico das habilidades conforme a estrela atual do herói.
+  function descricaoHabilidade(h) {
+    var mult = h.multiplicadorEfetivo || h.multiplicador || 1;
+    if (h.id === 'arremesso_agil') {
+      return 'Arremessa uma adaga rápida no inimigo da frente. Causa Dano = ATK × ' + fmtMult(mult) + '.';
+    }
+    if (h.id === 'tempestade_turquesa') {
+      return 'Cooldown de ' + (h.cooldown || 5) + 's. Dispara 3 facas no mesmo inimigo — foca o alvo mais ao fundo da formação inimiga (retaguarda). O multiplicador é POR FACA. Causa Dano = ATK × ' + fmtMult(mult) + ' (por faca).';
+    }
+    return h.descricao || '';
+  }
+
+  // Monta o texto dinâmico da passiva conforme a estrela atual do herói.
+  function descricaoPassiva(c) {
+    var p = c.passiva;
+    var efeito = efeitoPassiva(p, c.estrelas);
+    var facas = efeito && efeito.facas ? efeito.facas : 0;
+    var txt = 'A cada 5 ataques básicos realizados, arremessa ' + facas + ' facas em inimigos aleatórios vivos.';
+    if (c.estrelas >= ESTRELA_DESPERTA) {
+      txt += ' No Despertar, as facas causam Sangramento: dano que ignora completamente a DEF do inimigo.';
+    }
+    return txt;
+  }
+
   function calcularAtributos(c) {
     var lv = c.nivel || 1;
     var tm = TIER_MULT[c.tier] || 1;
@@ -123,9 +201,11 @@
 
   function defaultState() {
     var l = JSON.parse(JSON.stringify(LUNA));
+    var t = JSON.parse(JSON.stringify(TADOW));
     return {
       moedas: 250, gemas: 10,
-      personagens: [l], equipe: [l.id, null, null],
+      // Equipe de 5 slots: índices 0-2 = LINHA DE FRENTE, índices 3-4 = LINHA DE TRASEIRA.
+      personagens: [l, t], equipe: [l.id, t.id, null, null, null],
       inventario: [],
       progresso: { waveAtual: 1, waveMax: 1, bossDerrotados: 0, dificuldade: 1 },
       config: { volume: 50 }
@@ -166,11 +246,26 @@
       if (p.id === 'luna_01') { p.id = 'char_001'; changed = true; }
     });
     state.equipe = (state.equipe || []).map(function (id) { return id === 'luna_01' ? 'char_001' : id; });
+    // Garante 5 slots de equipe (3 frente + 2 traseira) em saves antigos.
+    while (state.equipe.length < 5) { state.equipe.push(null); changed = true; }
+
+    // Garante que todos os personagens do jogo existam no save (ex.: Tadow em saves antigos).
+    Object.keys(CHARACTER_TEMPLATES).forEach(function (cid) {
+      var tem = state.personagens.some(function (p) { return p.id === cid; });
+      if (!tem) {
+        state.personagens.push(JSON.parse(JSON.stringify(CHARACTER_TEMPLATES[cid])));
+        changed = true;
+      }
+    });
 
     state.personagens.forEach(function (p) {
       var template = CHARACTER_TEMPLATES[p.id];
       if (template) {
         if (!p.images && template.images) { p.images = template.images; changed = true; }
+        // Atualiza apenas o sprite de combate caso o template use uma versão nova.
+        if (p.images && template.images && template.images.combat && p.images.combat !== template.images.combat) {
+          p.images.combat = template.images.combat; changed = true;
+        }
         // Sempre sincroniza stats base e crescimento com o template (fonte de verdade),
         // para que mudanças de balanceamento na Luna se apliquem a saves antigos.
         if (template.stats) {
@@ -246,17 +341,162 @@
         '</div>' +
       '</div>';
 
-    $('btn-enter-battle').addEventListener('click', function () { navigate('battle'); });
+    $('btn-enter-battle').addEventListener('click', function () { navigate('formacao'); });
+  }
+
+  // ─── PAGE: FORMAÇÃO (SELEÇÃO DE EQUIPE) ──
+  // Tela exibida antes do combate: escolha os personagens e em quais slots
+  // da formação eles vão ficar (3 na linha de frente + 2 na linha de traseira).
+  function renderFormacao() {
+    var personagens = state.personagens;
+
+    // Slots de equipe: índices 0-2 = FRENTE, índices 3-4 = TRASEIRA.
+    var SLOT_ROTULOS = ['FRENTE', 'FRENTE', 'FRENTE', 'TRASEIRA', 'TRASEIRA'];
+
+    function slotHTML(i) {
+      var id = state.equipe[i];
+      var c = personagens.find(function (p) { return p.id === id; }) || null;
+      var img = c && c.images && c.images.perfil ? '<img src="' + c.images.perfil + '" alt="' + c.nome + '" />' : '';
+      var corpo = c
+        ? img + '<span class="form-slot-name">' + c.nome + '</span>'
+        : '<span class="form-slot-empty">+</span><span class="form-slot-name">Vazio</span>';
+      return '<button class="form-slot" data-slot="' + i + '">' + corpo + '</button>';
+    }
+
+    function tokenHTML(c, i) {
+      var img = c.images && c.images.perfil ? '<img src="' + c.images.perfil + '" alt="' + c.nome + '" />' : '🌙';
+      var usado = state.equipe.indexOf(c.id) !== -1;
+      return '<button class="form-token' + (usado ? ' used' : '') + '" data-char="' + c.id + '">' +
+        '<div class="form-token-img">' + img + '</div>' +
+        '<div class="form-token-name">' + c.nome + '</div>' +
+        '<div class="form-token-class">' + c.classe + '</div>' +
+      '</button>';
+    }
+
+    content.innerHTML =
+      '<div class="formacao-page">' +
+        '<h2 class="formacao-title">⚔️ Formação de Equipe</h2>' +
+        '<p class="formacao-sub">Toque em um personagem e depois em um slot para posicioná-lo.<br>3 na linha de frente · 2 na linha de traseira.</p>' +
+        '<div class="formacao-layout">' +
+          '<div class="form-panel">' +
+            '<div class="form-panel-title">Personagens</div>' +
+            '<div class="form-token-list">' + personagens.map(tokenHTML).join('') + '</div>' +
+          '</div>' +
+          '<div class="form-panel">' +
+            '<div class="form-panel-title">Formação</div>' +
+            '<div class="form-arena">' +
+              '<div class="form-col form-col-back">' + slotHTML(3) + slotHTML(4) + '</div>' +
+              '<div class="form-col form-col-front">' + slotHTML(0) + slotHTML(1) + slotHTML(2) + '</div>' +
+              '<div class="form-vs">VS</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="formacao-actions">' +
+          '<button class="btn-gold" id="btn-start-battle">⚔️ Iniciar Combate</button>' +
+          '<button class="btn-secondary" id="btn-clear-team">Limpar Equipe</button>' +
+        '</div>' +
+      '</div>';
+
+    var selecionado = null;
+    var selCharId = null;
+
+    // Seleção de personagem
+    content.querySelectorAll('.form-token').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = btn.dataset.char;
+        if (state.equipe.indexOf(id) !== -1) {
+          // Já está na equipe: remover da seleção.
+          selCharId = null; selecionado = null;
+        } else {
+          selCharId = id; selecionado = btn;
+        }
+        content.querySelectorAll('.form-token').forEach(function (b) { b.classList.remove('selected'); });
+        if (selecionado) selecionado.classList.add('selected');
+      });
+    });
+
+    // Posicionamento nos slots
+    content.querySelectorAll('.form-slot').forEach(function (slot) {
+      slot.addEventListener('click', function () {
+        var idx = parseInt(slot.dataset.slot, 10);
+        if (selCharId) {
+          // Coloca o personagem selecionado no slot (remove de outro slot se já estava).
+          state.equipe = state.equipe.map(function (id) { return id === selCharId ? null : id; });
+          state.equipe[idx] = selCharId;
+          selCharId = null; selecionado = null;
+          content.querySelectorAll('.form-token').forEach(function (b) { b.classList.remove('selected'); });
+          saveGame();
+          renderFormacao();
+        } else {
+          // Sem seleção: remover o personagem do slot clicado.
+          state.equipe[idx] = null;
+          saveGame();
+          renderFormacao();
+        }
+      });
+    });
+
+    $('btn-clear-team').addEventListener('click', function () {
+      state.equipe = [null, null, null, null, null];
+      saveGame();
+      renderFormacao();
+    });
+
+    $('btn-start-battle').addEventListener('click', function () {
+      var vivos = state.equipe.filter(Boolean).length;
+      if (vivos === 0) { alert('Escolha pelo menos um personagem para a batalha.'); return; }
+      navigate('battle');
+    });
   }
 
   // ─── PAGE: BATTLE ────────────────────────
+  // Estrutura base dos inimigos. Cada template define:
+  // - stats (hpMax, atk, velocidadeAtaque, def)
+  // - targeting (lógica de escolha de alvo: 'aleatorio', 'menor_hp' ou 'aliado_menor_hp_pct')
+  // - mecanica (comportamentos especiais: ciclo de buff, cura)
+  // - passiva (efeitos passivos, ex.: roubo de vida)
   var ENEMY_TEMPLATES = {
-    goblin: { nome: 'Goblin', lv: 1, hpMax: 1000, atk: 0, velocidadeAtaque: 1.0, emoji: '👹', exp: 15, dropChance: 0.15 },
-    orc: { nome: 'Orc', lv: 2, hpMax: 90, atk: 0, velocidadeAtaque: 0.8, emoji: '👺', exp: 25, dropChance: 0.2 },
-    troll: { nome: 'Troll', lv: 3, hpMax: 140, atk: 0, velocidadeAtaque: 0.6, emoji: '👿', exp: 40, dropChance: 0.25 },
+    mob_goblin_01: {
+      nome: 'Goblin Saqueador', lv: 1, hpMax: 30, atk: 5, velocidadeAtaque: 1.0, def: 0,
+      emoji: '👹', imagem: 'chars/Enemys/Goblin.png', exp: 15, dropChance: 0.15,
+      // Alvo Aleatório: escolhe um herói vivo ao acaso.
+      targeting: 'aleatorio',
+    },
+    mob_bat_01: {
+      nome: 'Morcego Sombrio', lv: 1, hpMax: 15, atk: 8, velocidadeAtaque: 1.0, def: 0,
+      emoji: '🦇', imagem: 'chars/Enemys/Morcego.png', exp: 20, dropChance: 0.15,
+      // O Finalizador: ataca o herói com o MENOR HP ATUAL.
+      targeting: 'menor_hp',
+    },
+    mob_ogre_01: {
+      nome: 'Ogro Escudeiro', lv: 1, hpMax: 120, atk: 3, velocidadeAtaque: 0.5, def: 0,
+      emoji: '👺', imagem: 'chars/Enemys/Orc.png', exp: 30, dropChance: 0.25,
+      // Suporte Defensivo: alvo aleatório. Ciclo: 2 ataques básicos e, na 3ª ação,
+      // NÃO ataca — aplica buff de +5% de DEF a um aliado (monstro) aleatório.
+      targeting: 'aleatorio',
+      mecanica: { tipo: 'ciclo', ataquesAntesDoBuff: 2, buffDef: 5 },
+    },
+    mob_shaman_01: {
+      nome: 'Xamã Corrompido', lv: 1, hpMax: 40, atk: 0, velocidadeAtaque: 1.2, def: 0,
+      emoji: '🧙', imagem: 'chars/Enemys/Xamã.png', exp: 25, dropChance: 0.2,
+      // Curandeiro: nunca ataca heróis. A cada intervalo (4s) cura o aliado
+      // (monstro) com a MENOR % de HP atual em +12 HP.
+      targeting: 'aliado_menor_hp_pct',
+      mecanica: { tipo: 'cura', intervalo: 4, cura: 12 },
+    },
+    mob_wolf_01: {
+      nome: 'Lobo Sanguinário', lv: 1, hpMax: 50, atk: 6, velocidadeAtaque: 1.0, def: 0,
+      emoji: '🐺', imagem: 'chars/Enemys/lobin.png', exp: 20, dropChance: 0.2,
+      // Lifesteal: alvo aleatório. Recupera em HP 50% do dano causado.
+      targeting: 'aleatorio',
+      passiva: { tipo: 'lifesteal', percentual: 0.5 },
+    },
   };
 
-  var WAVE_ENEMIES = { 1: ['goblin', 'goblin', 'goblin'] };
+  // Wave de teste: 1 cópia de cada um dos 5 inimigos para validar as mecânicas.
+  function spawnTestWave() {
+    return ['mob_goblin_01', 'mob_bat_01', 'mob_ogre_01', 'mob_shaman_01', 'mob_wolf_01'];
+  }
 
   var runPot = null;
 
@@ -284,7 +524,8 @@
   }
 
   function getWaveEnemies(n) {
-    return WAVE_ENEMIES[n] || ['goblin'];
+    // Em desenvolvimento, usa a wave de teste com os 5 inimigos.
+    return spawnTestWave();
   }
 
   var battle = null;
@@ -294,11 +535,12 @@
     novaRun();
     var eq = getEquipe();
 
-    var heroes = eq.filter(Boolean).map(function (c) {
+    var heroes = eq.map(function (c, slotIdx) {
+      if (!c) return null;
       var calc = calcularAtributos(c);
       var cs = calc.stats;
       return {
-        id: c.id, nome: c.nome,
+        id: c.id, nome: c.nome, slot: slotIdx,
         stats: {
           hp: cs.hpMax, hpMax: cs.hpMax, atk: cs.atk, def: cs.def,
           velocidadeAtaque: cs.velocidadeAtaque, chanceCritica: cs.chanceCritica, danoCritico: cs.danoCritico
@@ -308,6 +550,9 @@
         passivaEfeito: efeitoPassiva(c.passiva, c.estrelas),
         passivaTempo: (c.passiva && c.passiva.intervalo) || 0,
         passivaAtiva: false,
+        // Contador de ataques básicos — usado pelo gatilho da passiva do Tadow
+        // (Impulso Implacável): a cada 5 ataques básicos.
+        basicAttackCounter: 0,
         cds: (calc.habilidades || []).reduce(function (acc, sk) {
           var total = sk.tipo === 'basico' ? (1 / cs.velocidadeAtaque) : (sk.cooldown || 8);
           acc[sk.id] = { total: total, restante: total };
@@ -316,15 +561,18 @@
         atkTempo: 0,
         morto: false,
       };
-    });
+    }).filter(Boolean);
 
     var enemies = getWaveEnemies(state.progresso.waveAtual).map(function (key, i) {
       var t = ENEMY_TEMPLATES[key];
       return {
         id: key + '_' + (i + 1), nome: t.nome, lv: t.lv,
-        hp: t.hpMax, hpMax: t.hpMax, atk: t.atk, velocidadeAtaque: t.velocidadeAtaque, emoji: t.emoji,
+        hp: t.hpMax, hpMax: t.hpMax, atk: t.atk, def: t.def || 0, velocidadeAtaque: t.velocidadeAtaque,
+        emoji: t.emoji, imagem: t.imagem || '',
         exp: t.exp, dropChance: t.dropChance,
-        atkTempo: 0, morto: false,
+        targeting: t.targeting || 'aleatorio', mecanica: t.mecanica || null, passiva: t.passiva || null,
+        // Estado de combate individual.
+        atkTempo: 0, contadorAcao: 0, curaTempo: 0, morto: false,
       };
     });
 
@@ -385,7 +633,7 @@
       '</div>';
     }).join('');
 
-    var arenaHeroes = battle.heroes.map(function (h) {
+    function heroArenaItem(h) {
       var heroChar = state.personagens.find(function (p) { return p.id === h.id; });
       var combatSrc = heroChar && heroChar.images && heroChar.images.combat ? heroChar.images.combat : '';
       var inner = combatSrc ? '<img src="' + combatSrc + '" alt="' + h.nome + '" class="arena-unit-img" />' : '🌙';
@@ -395,21 +643,39 @@
         '</div>' +
         '<div class="arena-unit-label">' + h.nome + '</div>' +
       '</div>';
-    }).join('');
+    }
 
-    var arenaEnemies = battle.enemies.map(function (e) {
+    function enemyArenaItem(e) {
+      var inner = e.imagem ? '<img src="' + e.imagem + '" alt="' + e.nome + '" class="arena-unit-img" />' : e.emoji;
       return '<div class="arena-side-item">' +
-        '<div class="arena-unit enemy-unit" data-enemy-id="' + e.id + '">' + e.emoji +
+        '<div class="arena-unit enemy-unit" data-enemy-id="' + e.id + '">' + inner +
           '<div class="arena-unit-bar"><div class="arena-unit-bar-fill" style="width:100%;background:var(--hp-red)"></div></div>' +
         '</div>' +
         '<div class="arena-unit-label">' + e.nome + '</div>' +
       '</div>';
-    }).join('');
+    }
+
+    // Formação em profundidade (a luta é horizontal): 3 na LINHA DE FRENTE
+    // (slots 0-2, mais perto do inimigo) e 2 na LINHA DE TRASEIRA (slots 3-4).
+    // Heróis: traseira à esquerda, frente à direita (mais perto do VS).
+    var heroisFrente = battle.heroes.filter(function (h) { return h.slot < 3; });
+    var heroisTras = battle.heroes.filter(function (h) { return h.slot >= 3; });
+    var arenaHeroes =
+      '<div class="arena-col arena-col-back">' + heroisTras.map(heroArenaItem).join('') + '</div>' +
+      '<div class="arena-col arena-col-front">' + heroisFrente.map(heroArenaItem).join('') + '</div>';
+
+    // Inimigos: frente à esquerda (mais perto do VS), traseira à direita.
+    var inimigosFrente = battle.enemies.slice(0, 3);
+    var inimigosTras = battle.enemies.slice(3);
+    var arenaEnemies =
+      '<div class="arena-col arena-col-front">' + inimigosFrente.map(enemyArenaItem).join('') + '</div>' +
+      '<div class="arena-col arena-col-back">' + inimigosTras.map(enemyArenaItem).join('') + '</div>';
 
     var enemyBars = battle.enemies.map(function (e) {
       var pct = 100;
+      var icon = e.imagem ? '<img src="' + e.imagem + '" alt="' + e.nome + '" class="enemy-bar-img" />' : e.emoji;
       return '<div class="enemy-bar-card" data-enemy-id="' + e.id + '">' +
-        '<div class="enemy-bar-top"><span class="enemy-bar-icon">' + e.emoji + '</span><span class="enemy-bar-name">' + e.nome + '</span><span class="enemy-bar-level">Lv ' + e.lv + '</span></div>' +
+        '<div class="enemy-bar-top"><span class="enemy-bar-icon">' + icon + '</span><span class="enemy-bar-name">' + e.nome + '</span><span class="enemy-bar-level">Lv ' + e.lv + '</span></div>' +
         '<div class="enemy-hp"><div class="enemy-hp-fill" style="width:' + pct + '%"></div></div>' +
         '<div class="enemy-hp-text">' + e.hp + ' / ' + e.hpMax + '</div></div>';
     }).join('');
@@ -478,6 +744,15 @@
         if (alvo.hp <= 0) matarInimigo(alvo);
         animarAtaque('hero', h.id);
         if (habilidade && h.cds[habilidade.id]) h.cds[habilidade.id].restante = h.cds[habilidade.id].total;
+        // Gatilho de passiva por CONTADOR (ex.: Impulso Implacável do Tadow):
+        // a cada N ataques básicos, dispara o efeito da passiva.
+        if (h.passiva && h.passiva.tipo === 'contador') {
+          h.basicAttackCounter = (h.basicAttackCounter || 0) + 1;
+          if (h.basicAttackCounter >= (h.passiva.gatilho || 5)) {
+            h.basicAttackCounter = 0;
+            dispararPassivaContador(h);
+          }
+        }
         // passive: when active, every basic attack also splashes nearby enemies
         if (h.passivaAtiva && h.passiva && h.passivaEfeito) {
           var danoArea = Math.max(1, Math.round(h.stats.atk * mult * (h.passivaEfeito.danoArea || 0.3)));
@@ -488,8 +763,9 @@
           });
         }
       }
-      // tick down passive timer
-      if (h.passiva) {
+      // tick down passive timer (somente passivas baseadas em timer, ex.: Ciclo Lunar).
+      // Passivas por contador (ex.: Impulso Implacável) são tratadas no ataque básico.
+      if (h.passiva && h.passiva.tipo !== 'contador') {
         if (h.passivaAtiva) {
           h.passivaTempo -= dt;
           if (h.passivaTempo <= 0) {
@@ -514,6 +790,25 @@
         var cd = h.cds[sk.id];
         if (!cd || cd.restante > 0) return;
         var mult = sk.multiplicadorEfetivo || sk.multiplicador || 1;
+
+        // Targeting "retaguarda": foca o inimigo mais ao fundo da formação inimiga
+        // (o último vivo da coluna de trás). Usado pela Tempestade Turquesa do Tadow.
+        if (sk.alvo === 'retaguarda') {
+          var alvoFundo = escolherInimigoRetaguarda();
+          if (alvoFundo) {
+            var hits = sk.hits || 1;
+            for (var hi = 0; hi < hits; hi++) {
+              if (alvoFundo.morto) break;
+              var danoF = Math.max(1, Math.round(h.stats.atk * mult));
+              alvoFundo.hp = Math.max(0, alvoFundo.hp - danoF);
+              if (alvoFundo.hp <= 0) matarInimigo(alvoFundo);
+            }
+            animarAtaque('hero', h.id);
+          }
+          cd.restante = cd.total;
+          return;
+        }
+
         var dano = Math.max(1, Math.round(h.stats.atk * mult));
         battle.enemies.forEach(function (e) {
           if (e.morto) return;
@@ -528,16 +823,59 @@
     // Enemies attack
     battle.enemies.forEach(function (e) {
       if (e.morto) return;
+
+      // Xamã Corrompido: curandeiro — nunca ataca os heróis. A cada intervalo
+      // (4s) cura o aliado (monstro) com a menor % de HP atual em +12 HP.
+      if (e.mecanica && e.mecanica.tipo === 'cura') {
+        e.curaTempo += dt;
+        if (e.curaTempo >= e.mecanica.intervalo) {
+          e.curaTempo = 0;
+          var alvoCura = escolherAliadoMenorHpPct(e);
+          if (alvoCura) {
+            alvoCura.hp = Math.min(alvoCura.hpMax, alvoCura.hp + e.mecanica.cura);
+            animarAtaque('enemy', e.id);
+          }
+        }
+        return;
+      }
+
       e.atkTempo += dt;
       var intervalo = 1 / e.velocidadeAtaque;
       while (e.atkTempo >= intervalo) {
         e.atkTempo -= intervalo;
         if (e.atk <= 0) break;
-        var alvo = battle.heroes.find(function (h) { return !h.morto; });
+
+        // Ogro Escudeiro: ciclo de ações. Após N ataques básicos, a próxima ação
+        // NÃO ataca — aplica buff de +5% de DEF a um aliado (monstro) aleatório.
+        if (e.mecanica && e.mecanica.tipo === 'ciclo') {
+          e.contadorAcao++;
+          var limite = (e.mecanica.ataquesAntesDoBuff || 2);
+          if (e.contadorAcao > limite) {
+            e.contadorAcao = 0;
+            var aliados = battle.enemies.filter(function (x) { return !x.morto; });
+            if (aliados.length) {
+              var alvoBuff = aliados[Math.floor(Math.random() * aliados.length)];
+              alvoBuff.def = (alvoBuff.def || 0) + (e.mecanica.buffDef || 5);
+              animarAtaque('enemy', e.id);
+            }
+            continue;
+          }
+        }
+
+        // Seleciona o alvo conforme a lógica de targeting do inimigo.
+        var alvo = escolherAlvoInimigo(e);
         if (!alvo) break;
-        var danoE = e.atk;
+
+        // Dano mitigado pela DEFESA do herói (%).
+        var danoE = Math.max(1, Math.round(e.atk * (1 - (alvo.stats.def || 0) / 100)));
         alvo.stats.hp = Math.max(0, alvo.stats.hp - danoE);
         if (alvo.stats.hp <= 0) alvo.morto = true;
+
+        // Lobo Sanguinário: roubo de vida — recupera % do dano causado.
+        if (e.passiva && e.passiva.tipo === 'lifesteal') {
+          var curaLobo = Math.round(danoE * (e.passiva.percentual || 0.5));
+          e.hp = Math.min(e.hpMax, e.hp + curaLobo);
+        }
         animarAtaque('enemy', e.id);
       }
     });
@@ -556,6 +894,68 @@
       stopBattleTimer();
       mostrarFimDeJogo();
     }
+  }
+
+  // Lógica de targeting dos inimigos. Retorna o herói vivo escolhido conforme
+  // a mecânica de cada monstro:
+  //   'aleatorio'  -> herói vivo ao acaso
+  //   'menor_hp'   -> herói com o MENOR HP ATUAL (finalizador)
+  //   (Xamã)       -> não ataca heróis; tratado separadamente na cura.
+  function escolherAlvoInimigo(e) {
+    var vivos = battle.heroes.filter(function (h) { return !h.morto; });
+    if (!vivos.length) return null;
+    if (e.targeting === 'menor_hp') {
+      return vivos.reduce(function (menor, h) {
+        return (!menor || h.stats.hp < menor.stats.hp) ? h : menor;
+      }, null);
+    }
+    return vivos[Math.floor(Math.random() * vivos.length)];
+  }
+
+  // Xamã: seleciona o aliado (monstro) vivo com a MENOR % de HP ATUAL.
+  function escolherAliadoMenorHpPct(e) {
+    var aliados = battle.enemies.filter(function (x) { return !x.morto && x.id !== e.id; });
+    if (!aliados.length) return null;
+    return aliados.reduce(function (menor, x) {
+      var pctMenor = menor.hpMax ? menor.hp / menor.hpMax : 1;
+      var pctX = x.hpMax ? x.hp / x.hpMax : 1;
+      return pctX < pctMenor ? x : menor;
+    });
+  }
+
+  // Targeting "retaguarda": retorna o inimigo vivo posicionado mais ao fundo da
+  // formação inimiga (o último vivo da lista — a coluna de trás, mais à direita).
+  function escolherInimigoRetaguarda() {
+    var vivos = battle.enemies.filter(function (e) { return !e.morto; });
+    return vivos[vivos.length - 1] || null;
+  }
+
+  // Passiva por contador (ex.: Impulso Implacável do Tadow): arremessa N facas
+  // em inimigos vivos ALEATÓRIOS. No Despertar (sangramento), o dano ignora a DEF.
+  function dispararPassivaContador(h) {
+    var efeito = h.passivaEfeito;
+    if (!efeito) return;
+    var vivos = battle.enemies.filter(function (e) { return !e.morto; });
+    if (!vivos.length) return;
+    var facas = efeito.facas || 3;
+    var mult = efeito.mult || 0.5;
+    for (var i = 0; i < facas; i++) {
+      if (!vivos.length) break;
+      var alvo = vivos[Math.floor(Math.random() * vivos.length)];
+      var dano = Math.round(h.stats.atk * mult);
+      if (!efeito.sangramento) {
+        // Dano normal mitigado pela DEFESA do inimigo (%).
+        dano = Math.round(dano * (1 - (alvo.def || 0) / 100));
+      }
+      // Sangramento = Dano Verdadeiro: ignora completamente a DEF.
+      dano = Math.max(1, dano);
+      alvo.hp = Math.max(0, alvo.hp - dano);
+      if (alvo.hp <= 0) {
+        matarInimigo(alvo);
+        vivos = battle.enemies.filter(function (e) { return !e.morto; });
+      }
+    }
+    animarAtaque('hero', h.id);
   }
 
   function matarInimigo(e) {
@@ -607,7 +1007,7 @@
           }
         });
 
-        if (h.passiva) {
+        if (h.passiva && h.passiva.tipo !== 'contador') {
           var pSlot = card.querySelector('.hero-passive-slot[data-passive-id="' + h.passiva.id + '"]');
           if (pSlot) {
             var pRing = pSlot.querySelector('.hero-passive-ring');
@@ -629,6 +1029,17 @@
               if (pIcon) pIcon.innerHTML = h.passiva.icons && h.passiva.icons.cooldown
                 ? '<img src="' + h.passiva.icons.cooldown + '" alt="' + h.passiva.nome + '" />' : '🌑';
             }
+          }
+        } else if (h.passiva && h.passiva.tipo === 'contador') {
+          // Passiva por contador: mostra o progresso de ataques básicos até o gatilho.
+          var pSlot2 = card.querySelector('.hero-passive-slot[data-passive-id="' + h.passiva.id + '"]');
+          if (pSlot2) {
+            var pText2 = pSlot2.querySelector('.hero-passive-cd-text');
+            var pIcon2 = pSlot2.querySelector('.hero-passive-icon');
+            var gatilho = h.passiva.gatilho || 5;
+            if (pText2) pText2.textContent = (h.basicAttackCounter || 0) + '/' + gatilho;
+            if (pIcon2) pIcon2.innerHTML = h.passiva.icons && h.passiva.icons.cooldown
+              ? '<img src="' + h.passiva.icons.cooldown + '" alt="' + h.passiva.nome + '" />' : '🌑';
           }
         }
       }
@@ -823,7 +1234,7 @@
       var perfilSrc = c.images && c.images.perfil ? c.images.perfil : '';
 
       function multTxt(m) {
-        return 'ATK ×' + (m || 1).toFixed(1).replace('.', ',');
+        return 'ATK ×' + fmtMult(m);
       }
 
       var skillsHtml = habilidades.map(function (h) {
@@ -837,7 +1248,7 @@
               '<span class="skill-name">' + h.nome + ' <span class="badge ' + typeClass + '">' + typeLabel + '</span></span>' +
               '<span class="skill-mult" title="Multiplicador de dano da habilidade">' + multTxt(h.multiplicadorEfetivo) + '</span>' +
             '</div>' +
-            '<div class="skill-desc">' + h.descricao + '</div>' +
+            '<div class="skill-desc">' + descricaoHabilidade(h) + '</div>' +
           '</div>' +
         '</div>';
       }).join('');
@@ -851,7 +1262,7 @@
             '<span class="hero-passive-thumb">' + pImg + '</span>' +
             '<span class="hero-passive-name">' + c.passiva.nome + '</span>' +
           '</div>' +
-          '<div class="passive-desc">' + c.passiva.descricao + '</div>' +
+          '<div class="passive-desc">' + descricaoPassiva(c) + '</div>' +
         '</div>';
       }
 
@@ -1373,7 +1784,7 @@
 
   // ─── ROUTER ──────────────────────────────
   var routes = {
-    hub: renderHub, battle: renderBattle, heroes: renderHeroes,
+    hub: renderHub, formacao: renderFormacao, battle: renderBattle, heroes: renderHeroes,
     inventory: renderInventory, shop: renderShop, save: renderSave,
     tutorial: renderTutorial,
   };
@@ -1388,13 +1799,13 @@
     var ov = $('run-overlay');
     if (ov) ov.classList.add('hidden');
 
-    if (page !== 'battle') stopBattleTimer();
+    if (page === 'battle' || page === 'formacao') stopBattleTimer();
 
     navBtns.forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.page === page);
     });
 
-    bottomNav.style.display = page === 'battle' ? 'none' : 'flex';
+    bottomNav.style.display = (page === 'battle' || page === 'formacao') ? 'none' : 'flex';
     updateBackButton(page);
 
     routes[page]();
